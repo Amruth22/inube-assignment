@@ -1,0 +1,18 @@
+{
+  "conversation_id": "C-204",
+  "professional_id": "P-1007",
+  "messages": [
+    {"id": "M1",  "speaker": "assistant",    "text": "What is one piece of work from the past year that you are particularly proud of?"},
+    {"id": "M2",  "speaker": "professional", "text": "I led the requirements work for automating our motor claims intake process."},
+    {"id": "M3",  "speaker": "assistant",    "text": "What did you personally do?"},
+    {"id": "M4",  "speaker": "professional", "text": "I ran workshops with claims, fraud and technology teams, mapped the existing process and wrote the functional requirements. I also helped define the API payloads."},
+    {"id": "M5",  "speaker": "assistant",    "text": "What changed after implementation?"},
+    {"id": "M6",  "speaker": "professional", "text": "The average claim-registration time came down from around 18 minutes to 7 minutes. The solution is now used by about 120 claims handlers."},
+    {"id": "M7",  "speaker": "assistant",    "text": "When was this implemented?"},
+    {"id": "M8",  "speaker": "professional", "text": "The first release went live in November 2025."},
+    {"id": "M9",  "speaker": "professional", "text": "I also managed the entire engineering team of eight people."},
+    {"id": "M10", "speaker": "assistant",    "text": "Was engineering management formally part of your role?"},
+    {"id": "M11", "speaker": "professional", "text": "Not exactly. The engineering manager owned the team. I coordinated with them and tracked dependencies."},
+    {"id": "M12", "speaker": "professional", "text": "I recently completed a cloud architecture certification as well."}
+  ]
+}

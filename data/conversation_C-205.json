@@ -1,0 +1,10 @@
+{
+  "conversation_id": "C-205",
+  "professional_id": "P-1007",
+  "note": "C-204 continued. A later turn that conflicts with earlier, more specific evidence.",
+  "messages": [
+    {"id": "M13", "speaker": "professional", "text": "The project reduced registration time by 60%, and I was entirely responsible for delivering it."},
+    {"id": "M14", "speaker": "assistant",    "text": "Thanks — anything else you would like reflected on your profile?"},
+    {"id": "M15", "speaker": "professional", "text": "No, that's it for now. Please make sure the profile shows the impact properly."}
+  ]
+}
