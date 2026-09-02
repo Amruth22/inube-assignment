@@ -22,7 +22,7 @@ python agent.py --chat
 python -m pytest -q
 ```
 
-With `ANTHROPIC_API_KEY` exported, the agent uses **claude-sonnet-4-5** via
+With `ANTHROPIC_API_KEY` exported, the agent uses **claude-sonnet-5** via
 the Messages API (raw `httpx`, no framework, no SDK). Without a key it falls
 back to a deterministic **offline mock planner** (`--model mock`) and says so
 on stderr. Seed: `TRACCIA_SEED=4` (documented below).
@@ -70,46 +70,47 @@ y/N prompt on stdin.
 
 ## The four scenarios (`traces/`)
 
-`traces/s1..s4` were produced by **claude-sonnet-4-5**; `traces/mock/` holds
+`traces/s1..s4` were produced by **claude-sonnet-5**; `traces/mock/` holds
 the same four runs from the offline planner for comparison.
 
-- **S1** (C-204): 3 searches, then recognises that "automating our motor
-  claims intake process" is the existing achievement A-001 under another
-  name; enriches it (confirmation → overwrite) with contribution, outcome
-  (18→7 min, ~120 handlers), period (Nov 2025), skills and evidence M2/M4/M6/M8;
-  does not record the retracted "managed the engineering team" claim; asks
-  one follow-up naming candidate certifications instead of storing the vague
-  one. 7 calls, 1 write.
+- **S1** (C-204): searches, reads A-001, calls `verify_certification` (one
+  timeout, retried, then two candidate matches), then recognises that
+  "automating our motor claims intake process" is the existing achievement
+  A-001 under another name and enriches it (confirmation → overwrite) with
+  contribution, outcome (18→7 min, ~120 handlers), period (Nov 2025) and
+  evidence M2/M4/M6/M8; does not record the retracted "managed the
+  engineering team" claim but stores the corrected version as a skill
+  ("Cross-team dependency coordination", evidence M11); asks one follow-up
+  naming the two candidate certifications instead of storing the vague one.
+  9 calls, 2 writes.
 - **S2** (C-205 on S1 state): "entirely responsible for delivering it"
-  conflicts with M4/M9–M11, so nothing is written — the claim is parked via
-  `flag_for_human_review` citing those messages. The 60% figure is
-  consistent with the stored 18→7 min, so no change is needed. 0 writes.
-- **S3** (C-206 on S1 state): nothing new — 4 read-only calls to answer
-  "how is my profile looking", 0 writes, 0 flags, 0 follow-ups. (The mock
-  planner makes 0 calls here.)
-- **S4** (C-204 with `TRACCIA_FORCE_FAIL=1`): same enrichment as S1; the
-  registry fails all 3 attempts (logged as one call with `retries: 2`), no
+  conflicts with M4/M11, so nothing is written — the claim is parked via
+  `flag_for_human_review`. The 60% figure is consistent with the stored
+  18→7 min, so no change is needed. 0 writes.
+- **S3** (C-206 on S1 state): nothing new — **0 tool calls, 0 writes**; the
+  reply answers Maya's question about what Traccia does.
+- **S4** (C-204 with `TRACCIA_FORCE_FAIL=1`): same enrichment and skill as
+  S1; the registry fails all 3 attempts (one call with `retries: 2`), no
   certification is stored, one follow-up asks for the exact name.
 
 `store_after` in each trace is a raw `dump_store()`.
 
 ## Which model and why
 
-`claude-sonnet-4-5`: strong multi-step tool use at low latency/cost, which is
+`claude-sonnet-5`: strong multi-step tool use at low latency/cost, which is
 what this task is — many small tool decisions, no long-form generation. The
 offline mock planner follows the same written policy as the system prompt
 and exists so the tests are deterministic and the code runs without a key.
 
 ## Known wrong or missing
 
-- In S1 the real model asked the certification follow-up **without calling
-  `verify_certification` first** (S4 did call it). Defensible — the name was
-  too vague to store either way — but the system prompt says verify first,
-  so the prompt/tool description could be tightened.
-- The real model stored the new skills inside the achievement's `skills`
-  list rather than as separate `skill` profile facts, so they are not
-  findable via `search_profile` on facts. The mock does the opposite. Which
-  is right is a product decision I would ask about.
+- In S2 the model re-verified the certification from the earlier conversation
+  and asked the follow-up again, even though that question was already
+  pending from S1. Harmless but redundant; the executor could refuse a
+  duplicate follow-up the same way it refuses duplicate facts.
+- The model kept the original title "Claims workflow redesign" on A-001;
+  arguably "Motor claims intake automation" is now the better name. Renaming
+  is a product call, not something the agent should decide alone.
 - The mock planner's claim/retraction/conflict detection is regex-level; on
   genuinely unseen phrasing the real model is the answer, the mock only
   degrades to conservative behaviour (search, then ask or flag).

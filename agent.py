@@ -275,7 +275,7 @@ def default_model() -> str:
     if os.environ.get("TRACCIA_MODEL"):
         return os.environ["TRACCIA_MODEL"]
     if os.environ.get("ANTHROPIC_API_KEY"):
-        return "claude-sonnet-4-5"
+        return "claude-sonnet-5"
     print("note: ANTHROPIC_API_KEY not set — using the offline mock planner "
           "(--model mock). Export a key to use the real model.", file=sys.stderr)
     return "mock"
@@ -290,7 +290,7 @@ def main(argv: Optional[List[str]] = None) -> None:
                          "(repeatable)")
     ap.add_argument("--model", default=None,
                     help="'mock' or an Anthropic model id (default: "
-                         "claude-sonnet-4-5 if ANTHROPIC_API_KEY is set, else mock)")
+                         "claude-sonnet-5 if ANTHROPIC_API_KEY is set, else mock)")
     ap.add_argument("--scenario", default="run", help="label written into the trace")
     ap.add_argument("--trace-out", default=None, help="where to write the JSON trace")
     ap.add_argument("--console-out", default=None, help="where to mirror console output")

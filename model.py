@@ -30,7 +30,7 @@ class ModelError(Exception):
 # ==========================================================================
 
 class AnthropicModel:
-    def __init__(self, model_id: str = "claude-sonnet-4-5", max_tokens: int = 2000):
+    def __init__(self, model_id: str = "claude-sonnet-5", max_tokens: int = 8000):
         import httpx  # imported here so the mock path needs no dependencies
         self._httpx = httpx
         self.model_id = model_id

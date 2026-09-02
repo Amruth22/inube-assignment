@@ -1,39 +1,45 @@
 {
   "scenario": "S1",
-  "model": "claude-sonnet-4-5",
+  "model": "claude-sonnet-5",
   "seed": 4,
   "force_fail": false,
   "conversation": "C-204",
   "approval_mode": "auto (human approval simulated by harness)",
   "summary": {
-    "tool_calls": 7,
-    "writes": 1,
+    "tool_calls": 9,
+    "writes": 2,
     "errors": 0,
-    "what_changed": "enriched achievement A-001 (human-approved overwrite); asked follow-up: Which cloud architecture certification did you complete? (For example, AWS Certified Solutions Architect, Azure Solutions Architect Expert, Google Cloud Professional Architect, etc.)"
+    "what_changed": "enriched achievement A-001 (human-approved overwrite); added skill 'Cross-team dependency coordination' (F-005); asked follow-up: Which certification did you complete — AWS Certified Solutions Architect – Associate, or Google Professional Cloud Architect (or another one)?"
   },
   "calls": [
     {
       "n": 1,
       "tool": "search_profile",
       "arguments": {
-        "query": "motor claims intake automation"
+        "query": "motor claims intake automation requirements"
       },
       "result": {
-        "query": "motor claims intake automation",
-        "result_count": 2,
+        "query": "motor claims intake automation requirements",
+        "result_count": 3,
         "results": [
           {
             "record_type": "achievement",
             "id": "A-001",
             "title": "Claims workflow redesign",
             "period": "2025",
-            "match_score": 0.75
+            "match_score": 0.6
+          },
+          {
+            "record_type": "skill",
+            "id": "F-002",
+            "value": "Requirements gathering",
+            "match_score": 0.2
           },
           {
             "record_type": "skill",
             "id": "F-004",
             "value": "Claims operations",
-            "match_score": 0.25
+            "match_score": 0.2
           }
         ]
       },
@@ -42,27 +48,6 @@
     },
     {
       "n": 2,
-      "tool": "search_profile",
-      "arguments": {
-        "query": "requirements workshops API"
-      },
-      "result": {
-        "query": "requirements workshops API",
-        "result_count": 1,
-        "results": [
-          {
-            "record_type": "skill",
-            "id": "F-002",
-            "value": "Requirements gathering",
-            "match_score": 0.333
-          }
-        ]
-      },
-      "error": null,
-      "retries": 0
-    },
-    {
-      "n": 3,
       "tool": "search_profile",
       "arguments": {
         "query": "cloud architecture certification"
@@ -76,7 +61,7 @@
       "retries": 0
     },
     {
-      "n": 4,
+      "n": 3,
       "tool": "get_achievement",
       "arguments": {
         "achievement_id": "A-001"
@@ -99,15 +84,53 @@
       "retries": 0
     },
     {
+      "n": 4,
+      "tool": "verify_certification",
+      "arguments": {
+        "name": "Cloud Architecture Certification"
+      },
+      "result": {
+        "query": "Cloud Architecture Certification",
+        "match_count": 2,
+        "matches": [
+          {
+            "canonical_name": "AWS Certified Solutions Architect – Associate",
+            "issuer": "Amazon Web Services"
+          },
+          {
+            "canonical_name": "Google Professional Cloud Architect",
+            "issuer": "Google Cloud"
+          }
+        ],
+        "note": "registry cannot confirm holder identity or completion date"
+      },
+      "error": null,
+      "retries": 1
+    },
+    {
       "n": 5,
+      "tool": "search_profile",
+      "arguments": {
+        "query": "dependency tracking cross-team coordination"
+      },
+      "result": {
+        "query": "dependency tracking cross-team coordination",
+        "result_count": 0,
+        "results": []
+      },
+      "error": null,
+      "retries": 0
+    },
+    {
+      "n": 6,
       "tool": "request_confirmation",
       "arguments": {
         "action": "overwrite_achievement",
         "target_id": "A-001",
-        "reason": "Enriching existing \"Claims workflow redesign\" with specific details: led requirements for motor claims automation, workshops, process mapping, functional requirements, API payload definition; outcome: claim-registration time reduced from 18 to 7 minutes, 120 users; first release Nov 2025."
+        "reason": "Enrich existing 'Claims workflow redesign' achievement with contribution details, outcome metrics, and period stated by Maya in C-204"
       },
       "result": {
-        "confirmation_token": "CT-87876bda",
+        "confirmation_token": "CT-12b7c3b8",
         "approved": true,
         "message": "approved (human approval SIMULATED by harness --auto-approve; see README)"
       },
@@ -115,31 +138,34 @@
       "retries": 0
     },
     {
-      "n": 6,
+      "n": 7,
       "tool": "overwrite_achievement",
       "arguments": {
         "achievement_id": "A-001",
-        "confirmation_token": "CT-87876bda",
+        "confirmation_token": "CT-12b7c3b8",
         "payload": {
-          "title": "Motor claims intake automation",
-          "description": "Led requirements work for automating the motor claims intake process at NorthStar Insurance.",
-          "contribution": "Ran workshops with claims, fraud and technology teams; mapped the existing process; wrote the functional requirements; helped define the API payloads.",
-          "outcome": "Average claim-registration time reduced from 18 minutes to 7 minutes. Solution used by approximately 120 claims handlers.",
-          "period": "2025 (first release November 2025)",
+          "achievement_id": "A-001",
+          "professional_id": "P-1007",
+          "title": "Claims workflow redesign",
+          "description": "Led requirements work for automating the motor claims intake process, including running workshops with claims, fraud, and technology teams, mapping the existing process, and helping define API payloads.",
+          "contribution": "Ran cross-team workshops (claims, fraud, technology), mapped the existing process, wrote functional requirements, and helped define API payloads.",
           "skills": [
             "Requirements gathering",
             "Process mapping",
-            "Workshop facilitation",
-            "API design"
+            "Cross-functional workshop facilitation",
+            "API requirements definition"
           ],
+          "outcome": "Average claim-registration time reduced from ~18 minutes to ~7 minutes; solution used by ~120 claims handlers.",
+          "period": "First release went live November 2025",
           "evidence_message_ids": [
             "M2",
             "M4",
             "M6",
             "M8"
           ],
-          "confidence": 0.95,
-          "status": "supported"
+          "confidence": 0.9,
+          "status": "supported",
+          "source": "seed"
         }
       },
       "result": {
@@ -164,21 +190,40 @@
       "retries": 0
     },
     {
-      "n": 7,
+      "n": 8,
+      "tool": "update_profile_field",
+      "arguments": {
+        "fact_type": "skill",
+        "value": "Cross-team dependency coordination",
+        "evidence_message_ids": [
+          "M11"
+        ],
+        "confidence": 0.7,
+        "status": "supported"
+      },
+      "result": {
+        "created": true,
+        "fact_id": "F-005"
+      },
+      "error": null,
+      "retries": 0
+    },
+    {
+      "n": 9,
       "tool": "ask_followup",
       "arguments": {
-        "question": "Which cloud architecture certification did you complete? (For example, AWS Certified Solutions Architect, Azure Solutions Architect Expert, Google Cloud Professional Architect, etc.)",
-        "about": "certification name clarification"
+        "about": "cloud architecture certification name",
+        "question": "Which certification did you complete — AWS Certified Solutions Architect – Associate, or Google Professional Cloud Architect (or another one)?"
       },
       "result": {
         "asked": true,
-        "question": "Which cloud architecture certification did you complete? (For example, AWS Certified Solutions Architect, Azure Solutions Architect Expert, Google Cloud Professional Architect, etc.)"
+        "question": "Which certification did you complete — AWS Certified Solutions Architect – Associate, or Google Professional Cloud Architect (or another one)?"
       },
       "error": null,
       "retries": 0
     }
   ],
-  "final_message": "---\n\nHi Maya,\n\nI've updated your profile with the motor claims intake automation project. I enriched the existing \"Claims workflow redesign\" entry with the specific details you shared: your leadership of the requirements work, the workshops you ran, process mapping, functional requirements and API payload work. I also added the measurable outcome (18 minutes → 7 minutes for claim registration, used by ~120 handlers) and the November 2025 go-live date.\n\nRegarding the engineering team management point: I didn't add this because you clarified that the engineering manager formally owned the team and you coordinated dependencies rather than managing them directly.\n\nFor the cloud architecture certification, I need a bit more detail before I can add it. Could you let me know the specific certification name and provider?",
+  "final_message": "Here's what I updated based on our conversation:\n\n**Updated:** Your \"Claims workflow redesign\" achievement (A-001) now reflects the full story — leading requirements work for motor claims intake automation, running cross-team workshops, mapping the process, writing functional requirements, and helping define API payloads. I added the outcome (18→7 min claim-registration time, ~120 handlers using it) and the November 2025 go-live date, plus related skills (requirements gathering, process mapping, workshop facilitation, API requirements).\n\n**Added:** A \"Cross-team dependency coordination\" skill — based on your clarification that you coordinated with the engineering manager and tracked dependencies, rather than formally managing the 8-person engineering team. I did **not** record the initial \"managed the entire engineering team\" claim, since you walked it back.\n\n**Held back:** Your cloud architecture certification — \"cloud architecture certification\" matched two possible credentials in the registry (AWS Certified Solutions Architect – Associate and Google Professional Cloud Architect), so I can't safely store it as supported yet. I've asked which one it is; once confirmed I'll add it.",
   "store_after": {
     "professionals": {
       "P-1007": {
@@ -193,24 +238,24 @@
       "A-001": {
         "achievement_id": "A-001",
         "professional_id": "P-1007",
-        "title": "Motor claims intake automation",
-        "description": "Led requirements work for automating the motor claims intake process at NorthStar Insurance.",
-        "contribution": "Ran workshops with claims, fraud and technology teams; mapped the existing process; wrote the functional requirements; helped define the API payloads.",
+        "title": "Claims workflow redesign",
+        "description": "Led requirements work for automating the motor claims intake process, including running workshops with claims, fraud, and technology teams, mapping the existing process, and helping define API payloads.",
+        "contribution": "Ran cross-team workshops (claims, fraud, technology), mapped the existing process, wrote functional requirements, and helped define API payloads.",
         "skills": [
           "Requirements gathering",
           "Process mapping",
-          "Workshop facilitation",
-          "API design"
+          "Cross-functional workshop facilitation",
+          "API requirements definition"
         ],
-        "outcome": "Average claim-registration time reduced from 18 minutes to 7 minutes. Solution used by approximately 120 claims handlers.",
-        "period": "2025 (first release November 2025)",
+        "outcome": "Average claim-registration time reduced from ~18 minutes to ~7 minutes; solution used by ~120 claims handlers.",
+        "period": "First release went live November 2025",
         "evidence_message_ids": [
           "M2",
           "M4",
           "M6",
           "M8"
         ],
-        "confidence": 0.95,
+        "confidence": 0.9,
         "status": "supported",
         "source": "agent_overwrite"
       }
@@ -255,13 +300,25 @@
         "confidence": null,
         "status": "supported",
         "source": "seed"
+      },
+      "F-005": {
+        "fact_id": "F-005",
+        "professional_id": "P-1007",
+        "fact_type": "skill",
+        "value": "Cross-team dependency coordination",
+        "evidence_message_ids": [
+          "M11"
+        ],
+        "confidence": 0.7,
+        "status": "supported",
+        "source": "agent"
       }
     },
     "review_queue": [],
     "followups": [
       {
-        "question": "Which cloud architecture certification did you complete? (For example, AWS Certified Solutions Architect, Azure Solutions Architect Expert, Google Cloud Professional Architect, etc.)",
-        "about": "certification name clarification"
+        "question": "Which certification did you complete — AWS Certified Solutions Architect – Associate, or Google Professional Cloud Architect (or another one)?",
+        "about": "cloud architecture certification name"
       }
     ]
   }

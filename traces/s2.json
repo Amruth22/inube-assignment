@@ -1,39 +1,45 @@
 {
   "scenario": "S2",
-  "model": "claude-sonnet-4-5",
+  "model": "claude-sonnet-5",
   "seed": 4,
   "force_fail": false,
   "conversation": "C-205",
   "approval_mode": "auto (human approval simulated by harness)",
   "summary": {
-    "tool_calls": 5,
+    "tool_calls": 6,
     "writes": 0,
     "errors": 0,
-    "what_changed": "flagged for human review (R-001): M13 claims sole responsibility (\"entirely responsible for delivering it\") for the motor claims automation project, contradicting earlier detailed evidence in M4, M9-M11 describing collaborative work with multiple teams where the engineering manager owned the engineering team and Maya coordinated requirements work."
+    "what_changed": "flagged for human review (R-001): Professional now claims sole/entire responsibility for delivering the claims-automation project (\"I was entirely responsible for delivering it\"), which conflicts with earlier, more specific evidence describing a cross-functional effort (workshops with claims, fraud, and technology teams) and a walked-back claim of managing the engineering team. Needs human judgment on how to reconcile ownership language.; asked follow-up: For the cloud architecture certification you mentioned earlier — is it the \"AWS Certified Solutions Architect – Associate\" or the \"Google Professional Cloud Architect\"?"
   },
   "calls": [
     {
       "n": 1,
       "tool": "search_profile",
       "arguments": {
-        "query": "motor claims intake automation"
+        "query": "motor claims intake automation requirements"
       },
       "result": {
-        "query": "motor claims intake automation",
-        "result_count": 2,
+        "query": "motor claims intake automation requirements",
+        "result_count": 3,
         "results": [
           {
             "record_type": "achievement",
             "id": "A-001",
-            "title": "Motor claims intake automation",
-            "period": "2025 (first release November 2025)",
-            "match_score": 1.0
+            "title": "Claims workflow redesign",
+            "period": "First release went live November 2025",
+            "match_score": 0.8
+          },
+          {
+            "record_type": "skill",
+            "id": "F-002",
+            "value": "Requirements gathering",
+            "match_score": 0.2
           },
           {
             "record_type": "skill",
             "id": "F-004",
             "value": "Claims operations",
-            "match_score": 0.25
+            "match_score": 0.2
           }
         ]
       },
@@ -42,34 +48,6 @@
     },
     {
       "n": 2,
-      "tool": "search_profile",
-      "arguments": {
-        "query": "requirements workshops API"
-      },
-      "result": {
-        "query": "requirements workshops API",
-        "result_count": 2,
-        "results": [
-          {
-            "record_type": "achievement",
-            "id": "A-001",
-            "title": "Motor claims intake automation",
-            "period": "2025 (first release November 2025)",
-            "match_score": 0.333
-          },
-          {
-            "record_type": "skill",
-            "id": "F-002",
-            "value": "Requirements gathering",
-            "match_score": 0.333
-          }
-        ]
-      },
-      "error": null,
-      "retries": 0
-    },
-    {
-      "n": 3,
       "tool": "search_profile",
       "arguments": {
         "query": "cloud architecture certification"
@@ -83,34 +61,38 @@
       "retries": 0
     },
     {
-      "n": 4,
+      "n": 3,
       "tool": "get_achievement",
       "arguments": {
         "achievement_id": "A-001"
       },
       "result": {
-        "achievement_id": "A-001",
-        "professional_id": "P-1007",
-        "title": "Motor claims intake automation",
-        "description": "Led requirements work for automating the motor claims intake process at NorthStar Insurance.",
-        "contribution": "Ran workshops with claims, fraud and technology teams; mapped the existing process; wrote the functional requirements; helped define the API payloads.",
-        "skills": [
-          "Requirements gathering",
-          "Process mapping",
-          "Workshop facilitation",
-          "API design"
+        "truncated": true,
+        "preview": "{\"achievement_id\": \"A-001\", \"professional_id\": \"P-1007\", \"title\": \"Claims workflow redesign\", \"description\": \"Led requirements work for automating the motor claims intake process, including running workshops with claims, fraud, and technology teams, mapping the existing process, and helping define API payloads.\", \"contribution\": \"Ran cross-team workshops (claims, fraud, technology), mapped the existing process, wrote functional requirements, and helped define API payloads.\", \"skills\": [\"Requirements gathering\", \"Process mapping\", \"Cross-functional workshop facilitation\", \"API requirements definition\"], \"outcome\": \"Average claim-registration time reduced from ~18 minutes to ~7 minutes; solution used by ~120 claims handlers.\", \"period\": \"First release went live November 2025\", \"evidence_mess"
+      },
+      "error": null,
+      "retries": 0
+    },
+    {
+      "n": 4,
+      "tool": "verify_certification",
+      "arguments": {
+        "name": "Cloud Architecture Certification"
+      },
+      "result": {
+        "query": "Cloud Architecture Certification",
+        "match_count": 2,
+        "matches": [
+          {
+            "canonical_name": "AWS Certified Solutions Architect – Associate",
+            "issuer": "Amazon Web Services"
+          },
+          {
+            "canonical_name": "Google Professional Cloud Architect",
+            "issuer": "Google Cloud"
+          }
         ],
-        "outcome": "Average claim-registration time reduced from 18 minutes to 7 minutes. Solution used by approximately 120 claims handlers.",
-        "period": "2025 (first release November 2025)",
-        "evidence_message_ids": [
-          "M2",
-          "M4",
-          "M6",
-          "M8"
-        ],
-        "confidence": 0.95,
-        "status": "supported",
-        "source": "agent_overwrite"
+        "note": "registry cannot confirm holder identity or completion date"
       },
       "error": null,
       "retries": 0
@@ -119,12 +101,11 @@
       "n": 5,
       "tool": "flag_for_human_review",
       "arguments": {
-        "reason": "M13 claims sole responsibility (\"entirely responsible for delivering it\") for the motor claims automation project, contradicting earlier detailed evidence in M4, M9-M11 describing collaborative work with multiple teams where the engineering manager owned the engineering team and Maya coordinated requirements work.",
+        "reason": "Professional now claims sole/entire responsibility for delivering the claims-automation project (\"I was entirely responsible for delivering it\"), which conflicts with earlier, more specific evidence describing a cross-functional effort (workshops with claims, fraud, and technology teams) and a walked-back claim of managing the engineering team. Needs human judgment on how to reconcile ownership language.",
         "refs": [
           "M13",
           "M4",
           "M9",
-          "M10",
           "M11",
           "A-001"
         ]
@@ -135,9 +116,23 @@
       },
       "error": null,
       "retries": 0
+    },
+    {
+      "n": 6,
+      "tool": "ask_followup",
+      "arguments": {
+        "about": "certification name",
+        "question": "For the cloud architecture certification you mentioned earlier — is it the \"AWS Certified Solutions Architect – Associate\" or the \"Google Professional Cloud Architect\"?"
+      },
+      "result": {
+        "asked": true,
+        "question": "For the cloud architecture certification you mentioned earlier — is it the \"AWS Certified Solutions Architect – Associate\" or the \"Google Professional Cloud Architect\"?"
+      },
+      "error": null,
+      "retries": 0
     }
   ],
-  "final_message": "---\n\nHi Maya,\n\nI've reviewed your latest message. The profile already captures the motor claims automation project with the impact you described (18 to 7 minutes, ~60% reduction), based on our earlier conversation.\n\nHowever, I've held back the statement about being \"entirely responsible\" because it conflicts with your earlier, more detailed account where you described running workshops with multiple teams and coordinating with the engineering manager who owned the engineering team. I've flagged this for a human reviewer to discuss with you and clarify the scope of your ownership.\n\nThe cloud certification you mentioned earlier isn't on the profile yet — I'd need the specific certification name to verify and add it properly.",
+  "final_message": "Here's what I did with this conversation:\n\n- **Didn't add a duplicate achievement or new outcome figure.** Your \"60% reduction\" in M13 is consistent with the existing profile entry (18→7 min ≈ 61%), so no change was needed there.\n- **Flagged for human review:** Your statement \"I was entirely responsible for delivering it\" conflicts with the earlier, more detailed evidence on your profile — the cross-team workshops (claims, fraud, technology) and your own clarification that you coordinated with, but didn't own, the engineering team. I can't unilaterally resolve that contradiction, so a human reviewer will look at how to phrase ownership accurately.\n- **Certification not yet stored.** I checked the registry for the \"cloud architecture certification\" you mentioned previously, and it returned two possible matches (AWS Certified Solutions Architect – Associate, and Google Professional Cloud Architect). Since the name is ambiguous, I didn't add it — I've asked you to confirm which one it is so it can be recorded correctly.\n\nNo other changes were made.",
   "store_after": {
     "professionals": {
       "P-1007": {
@@ -152,24 +147,24 @@
       "A-001": {
         "achievement_id": "A-001",
         "professional_id": "P-1007",
-        "title": "Motor claims intake automation",
-        "description": "Led requirements work for automating the motor claims intake process at NorthStar Insurance.",
-        "contribution": "Ran workshops with claims, fraud and technology teams; mapped the existing process; wrote the functional requirements; helped define the API payloads.",
+        "title": "Claims workflow redesign",
+        "description": "Led requirements work for automating the motor claims intake process, including running workshops with claims, fraud, and technology teams, mapping the existing process, and helping define API payloads.",
+        "contribution": "Ran cross-team workshops (claims, fraud, technology), mapped the existing process, wrote functional requirements, and helped define API payloads.",
         "skills": [
           "Requirements gathering",
           "Process mapping",
-          "Workshop facilitation",
-          "API design"
+          "Cross-functional workshop facilitation",
+          "API requirements definition"
         ],
-        "outcome": "Average claim-registration time reduced from 18 minutes to 7 minutes. Solution used by approximately 120 claims handlers.",
-        "period": "2025 (first release November 2025)",
+        "outcome": "Average claim-registration time reduced from ~18 minutes to ~7 minutes; solution used by ~120 claims handlers.",
+        "period": "First release went live November 2025",
         "evidence_message_ids": [
           "M2",
           "M4",
           "M6",
           "M8"
         ],
-        "confidence": 0.95,
+        "confidence": 0.9,
         "status": "supported",
         "source": "agent_overwrite"
       }
@@ -214,18 +209,29 @@
         "confidence": null,
         "status": "supported",
         "source": "seed"
+      },
+      "F-005": {
+        "fact_id": "F-005",
+        "professional_id": "P-1007",
+        "fact_type": "skill",
+        "value": "Cross-team dependency coordination",
+        "evidence_message_ids": [
+          "M11"
+        ],
+        "confidence": 0.7,
+        "status": "supported",
+        "source": "agent"
       }
     },
     "review_queue": [
       {
         "review_id": "R-001",
         "professional_id": "P-1007",
-        "reason": "M13 claims sole responsibility (\"entirely responsible for delivering it\") for the motor claims automation project, contradicting earlier detailed evidence in M4, M9-M11 describing collaborative work with multiple teams where the engineering manager owned the engineering team and Maya coordinated requirements work.",
+        "reason": "Professional now claims sole/entire responsibility for delivering the claims-automation project (\"I was entirely responsible for delivering it\"), which conflicts with earlier, more specific evidence describing a cross-functional effort (workshops with claims, fraud, and technology teams) and a walked-back claim of managing the engineering team. Needs human judgment on how to reconcile ownership language.",
         "refs": [
           "M13",
           "M4",
           "M9",
-          "M10",
           "M11",
           "A-001"
         ]
@@ -233,8 +239,12 @@
     ],
     "followups": [
       {
-        "question": "Which cloud architecture certification did you complete? (For example, AWS Certified Solutions Architect, Azure Solutions Architect Expert, Google Cloud Professional Architect, etc.)",
-        "about": "certification name clarification"
+        "question": "Which certification did you complete — AWS Certified Solutions Architect – Associate, or Google Professional Cloud Architect (or another one)?",
+        "about": "cloud architecture certification name"
+      },
+      {
+        "question": "For the cloud architecture certification you mentioned earlier — is it the \"AWS Certified Solutions Architect – Associate\" or the \"Google Professional Cloud Architect\"?",
+        "about": "certification name"
       }
     ]
   }
