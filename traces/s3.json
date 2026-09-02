@@ -1,18 +1,128 @@
 {
   "scenario": "S3",
-  "model": "mock-planner",
+  "model": "claude-sonnet-4-5",
   "seed": 4,
   "force_fail": false,
   "conversation": "C-206",
   "approval_mode": "auto (human approval simulated by harness)",
   "summary": {
-    "tool_calls": 0,
+    "tool_calls": 4,
     "writes": 0,
     "errors": 0,
     "what_changed": "no changes"
   },
-  "calls": [],
-  "final_message": "Nothing in this conversation changes the profile, so I have written nothing. Happy to summarise what is currently on it, Maya — and to answer your question: these conversations are only used to keep your own profile accurate; nothing is stored unless you actually said it.",
+  "calls": [
+    {
+      "n": 1,
+      "tool": "search_profile",
+      "arguments": {
+        "query": "claims intake automation requirements"
+      },
+      "result": {
+        "query": "claims intake automation requirements",
+        "result_count": 3,
+        "results": [
+          {
+            "record_type": "achievement",
+            "id": "A-001",
+            "title": "Motor claims intake automation",
+            "period": "2025 (first release November 2025)",
+            "match_score": 0.75
+          },
+          {
+            "record_type": "skill",
+            "id": "F-002",
+            "value": "Requirements gathering",
+            "match_score": 0.25
+          },
+          {
+            "record_type": "skill",
+            "id": "F-004",
+            "value": "Claims operations",
+            "match_score": 0.25
+          }
+        ]
+      },
+      "error": null,
+      "retries": 0
+    },
+    {
+      "n": 2,
+      "tool": "search_profile",
+      "arguments": {
+        "query": "certifications cloud architecture"
+      },
+      "result": {
+        "query": "certifications cloud architecture",
+        "result_count": 0,
+        "results": []
+      },
+      "error": null,
+      "retries": 0
+    },
+    {
+      "n": 3,
+      "tool": "search_profile",
+      "arguments": {
+        "query": "NorthStar Insurance business analyst"
+      },
+      "result": {
+        "query": "NorthStar Insurance business analyst",
+        "result_count": 2,
+        "results": [
+          {
+            "record_type": "achievement",
+            "id": "A-001",
+            "title": "Motor claims intake automation",
+            "period": "2025 (first release November 2025)",
+            "match_score": 0.5
+          },
+          {
+            "record_type": "skill",
+            "id": "F-001",
+            "value": "Business analysis",
+            "match_score": 0.25
+          }
+        ]
+      },
+      "error": null,
+      "retries": 0
+    },
+    {
+      "n": 4,
+      "tool": "get_achievement",
+      "arguments": {
+        "achievement_id": "A-001"
+      },
+      "result": {
+        "achievement_id": "A-001",
+        "professional_id": "P-1007",
+        "title": "Motor claims intake automation",
+        "description": "Led requirements work for automating the motor claims intake process at NorthStar Insurance.",
+        "contribution": "Ran workshops with claims, fraud and technology teams; mapped the existing process; wrote the functional requirements; helped define the API payloads.",
+        "skills": [
+          "Requirements gathering",
+          "Process mapping",
+          "Workshop facilitation",
+          "API design"
+        ],
+        "outcome": "Average claim-registration time reduced from 18 minutes to 7 minutes. Solution used by approximately 120 claims handlers.",
+        "period": "2025 (first release November 2025)",
+        "evidence_message_ids": [
+          "M2",
+          "M4",
+          "M6",
+          "M8"
+        ],
+        "confidence": 0.95,
+        "status": "supported",
+        "source": "agent_overwrite"
+      },
+      "error": null,
+      "retries": 0
+    }
+  ],
+  "final_message": "Hi Maya,\n\n**Your profile currently looks good.** From our earlier conversation, I've already captured:\n\n- **Achievement**: Motor claims intake automation at NorthStar Insurance — your requirements work, workshops, process mapping, and the outcome (claim registration time down from 18 to 7 minutes, used by ~120 handlers)\n- **Skills**: Requirements gathering, process mapping, workshop facilitation, API design, business analysis, and claims operations\n\n**What I didn't add** from the earlier conversation:\n- The **cloud architecture certification** you mentioned — I need more detail (the exact certification name and issuing body) before I can verify and add it to your profile.\n\n**About your current messages (M16–M18):** These are questions about the platform, so I'm making no changes based on them.\n\n**What Traccia does with these conversations:** Each conversation helps build and refine your verified profile. I extract concrete achievements, skills, and facts that you've stated — always citing exactly where you said them — so your profile becomes a durable, evidence-backed record of your work. Nothing goes on the profile unless you've clearly stated it, and I never sharpen or invent details beyond your own words.\n\nIs there anything specific you'd like to add or update?",
   "store_after": {
     "professionals": {
       "P-1007": {
@@ -27,24 +137,24 @@
       "A-001": {
         "achievement_id": "A-001",
         "professional_id": "P-1007",
-        "title": "Claims workflow redesign",
-        "description": "Helped redesign the motor claims intake workflow. Led the requirements work for automating our motor claims intake process.",
-        "contribution": "I ran workshops with claims, fraud and technology teams, mapped the existing process and wrote the functional requirements. I also helped define the API payloads.",
+        "title": "Motor claims intake automation",
+        "description": "Led requirements work for automating the motor claims intake process at NorthStar Insurance.",
+        "contribution": "Ran workshops with claims, fraud and technology teams; mapped the existing process; wrote the functional requirements; helped define the API payloads.",
         "skills": [
-          "API design",
-          "Cross-team coordination",
+          "Requirements gathering",
           "Process mapping",
-          "Workshop facilitation"
+          "Workshop facilitation",
+          "API design"
         ],
-        "outcome": "The average claim-registration time came down from around 18 minutes to 7 minutes. The solution is now used by about 120 claims handlers.",
-        "period": "November 2025",
+        "outcome": "Average claim-registration time reduced from 18 minutes to 7 minutes. Solution used by approximately 120 claims handlers.",
+        "period": "2025 (first release November 2025)",
         "evidence_message_ids": [
           "M2",
           "M4",
           "M6",
           "M8"
         ],
-        "confidence": 0.85,
+        "confidence": 0.95,
         "status": "supported",
         "source": "agent_overwrite"
       }
@@ -89,61 +199,13 @@
         "confidence": null,
         "status": "supported",
         "source": "seed"
-      },
-      "F-005": {
-        "fact_id": "F-005",
-        "professional_id": "P-1007",
-        "fact_type": "skill",
-        "value": "Workshop facilitation",
-        "evidence_message_ids": [
-          "M4"
-        ],
-        "confidence": 0.8,
-        "status": "supported",
-        "source": "agent"
-      },
-      "F-006": {
-        "fact_id": "F-006",
-        "professional_id": "P-1007",
-        "fact_type": "skill",
-        "value": "Process mapping",
-        "evidence_message_ids": [
-          "M4"
-        ],
-        "confidence": 0.8,
-        "status": "supported",
-        "source": "agent"
-      },
-      "F-007": {
-        "fact_id": "F-007",
-        "professional_id": "P-1007",
-        "fact_type": "skill",
-        "value": "API design",
-        "evidence_message_ids": [
-          "M4"
-        ],
-        "confidence": 0.8,
-        "status": "supported",
-        "source": "agent"
-      },
-      "F-008": {
-        "fact_id": "F-008",
-        "professional_id": "P-1007",
-        "fact_type": "skill",
-        "value": "Cross-team coordination",
-        "evidence_message_ids": [
-          "M11"
-        ],
-        "confidence": 0.8,
-        "status": "supported",
-        "source": "agent"
       }
     },
     "review_queue": [],
     "followups": [
       {
-        "question": "Which certification did you complete exactly — AWS Certified Solutions Architect – Associate or Google Professional Cloud Architect? And when? I have not added it until you confirm.",
-        "about": "certification"
+        "question": "Which cloud architecture certification did you complete? (For example, AWS Certified Solutions Architect, Azure Solutions Architect Expert, Google Cloud Professional Architect, etc.)",
+        "about": "certification name clarification"
       }
     ]
   }

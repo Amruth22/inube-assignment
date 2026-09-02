@@ -1,0 +1,373 @@
+{
+  "scenario": "S4",
+  "model": "mock-planner",
+  "seed": 4,
+  "force_fail": true,
+  "conversation": "C-204",
+  "approval_mode": "auto (human approval simulated by harness)",
+  "summary": {
+    "tool_calls": 10,
+    "writes": 5,
+    "errors": 1,
+    "what_changed": "enriched achievement A-001 (human-approved overwrite); added skill 'Workshop facilitation' (F-005); added skill 'Process mapping' (F-006); added skill 'API design' (F-007); added skill 'Cross-team coordination' (F-008); asked follow-up: You mentioned a cloud architecture certification — which one exactly (issuer and exact name), and when did you complete it? The registry is currently unreachable, so I could not verify it and have not added it yet."
+  },
+  "calls": [
+    {
+      "n": 1,
+      "tool": "search_profile",
+      "arguments": {
+        "query": "led requirements work automating motor claims intake process"
+      },
+      "result": {
+        "query": "led requirements work automating motor claims intake process",
+        "result_count": 3,
+        "results": [
+          {
+            "record_type": "achievement",
+            "id": "A-001",
+            "title": "Claims workflow redesign",
+            "period": "2025",
+            "match_score": 0.375
+          },
+          {
+            "record_type": "skill",
+            "id": "F-002",
+            "value": "Requirements gathering",
+            "match_score": 0.125
+          },
+          {
+            "record_type": "skill",
+            "id": "F-004",
+            "value": "Claims operations",
+            "match_score": 0.125
+          }
+        ]
+      },
+      "error": null,
+      "retries": 0
+    },
+    {
+      "n": 2,
+      "tool": "get_achievement",
+      "arguments": {
+        "achievement_id": "A-001"
+      },
+      "result": {
+        "achievement_id": "A-001",
+        "professional_id": "P-1007",
+        "title": "Claims workflow redesign",
+        "description": "Helped redesign the motor claims intake workflow.",
+        "contribution": null,
+        "skills": [],
+        "outcome": null,
+        "period": "2025",
+        "evidence_message_ids": [],
+        "confidence": null,
+        "status": "supported",
+        "source": "seed"
+      },
+      "error": null,
+      "retries": 0
+    },
+    {
+      "n": 3,
+      "tool": "request_confirmation",
+      "arguments": {
+        "action": "overwrite_achievement",
+        "target_id": "A-001",
+        "reason": "Enrich A-001 with contribution, outcome and period stated in messages M2, M4, M6, M8"
+      },
+      "result": {
+        "confirmation_token": "CT-f0ecb0a9",
+        "approved": true,
+        "message": "approved (human approval SIMULATED by harness --auto-approve; see README)"
+      },
+      "error": null,
+      "retries": 0
+    },
+    {
+      "n": 4,
+      "tool": "overwrite_achievement",
+      "arguments": {
+        "achievement_id": "A-001",
+        "payload": {
+          "title": "Claims workflow redesign",
+          "description": "Helped redesign the motor claims intake workflow. Led the requirements work for automating our motor claims intake process.",
+          "contribution": "I ran workshops with claims, fraud and technology teams, mapped the existing process and wrote the functional requirements. I also helped define the API payloads.",
+          "skills": [
+            "API design",
+            "Cross-team coordination",
+            "Process mapping",
+            "Workshop facilitation"
+          ],
+          "outcome": "The average claim-registration time came down from around 18 minutes to 7 minutes. The solution is now used by about 120 claims handlers.",
+          "period": "November 2025",
+          "evidence_message_ids": [
+            "M2",
+            "M4",
+            "M6",
+            "M8"
+          ],
+          "confidence": 0.85,
+          "status": "supported"
+        },
+        "confirmation_token": "CT-f0ecb0a9"
+      },
+      "result": {
+        "overwritten": true,
+        "achievement_id": "A-001",
+        "previous": {
+          "achievement_id": "A-001",
+          "professional_id": "P-1007",
+          "title": "Claims workflow redesign",
+          "description": "Helped redesign the motor claims intake workflow.",
+          "contribution": null,
+          "skills": [],
+          "outcome": null,
+          "period": "2025",
+          "evidence_message_ids": [],
+          "confidence": null,
+          "status": "supported",
+          "source": "seed"
+        }
+      },
+      "error": null,
+      "retries": 0
+    },
+    {
+      "n": 5,
+      "tool": "update_profile_field",
+      "arguments": {
+        "fact_type": "skill",
+        "value": "Workshop facilitation",
+        "evidence_message_ids": [
+          "M4"
+        ],
+        "confidence": 0.8,
+        "status": "supported"
+      },
+      "result": {
+        "created": true,
+        "fact_id": "F-005"
+      },
+      "error": null,
+      "retries": 0
+    },
+    {
+      "n": 6,
+      "tool": "update_profile_field",
+      "arguments": {
+        "fact_type": "skill",
+        "value": "Process mapping",
+        "evidence_message_ids": [
+          "M4"
+        ],
+        "confidence": 0.8,
+        "status": "supported"
+      },
+      "result": {
+        "created": true,
+        "fact_id": "F-006"
+      },
+      "error": null,
+      "retries": 0
+    },
+    {
+      "n": 7,
+      "tool": "update_profile_field",
+      "arguments": {
+        "fact_type": "skill",
+        "value": "API design",
+        "evidence_message_ids": [
+          "M4"
+        ],
+        "confidence": 0.8,
+        "status": "supported"
+      },
+      "result": {
+        "created": true,
+        "fact_id": "F-007"
+      },
+      "error": null,
+      "retries": 0
+    },
+    {
+      "n": 8,
+      "tool": "update_profile_field",
+      "arguments": {
+        "fact_type": "skill",
+        "value": "Cross-team coordination",
+        "evidence_message_ids": [
+          "M11"
+        ],
+        "confidence": 0.8,
+        "status": "supported"
+      },
+      "result": {
+        "created": true,
+        "fact_id": "F-008"
+      },
+      "error": null,
+      "retries": 0
+    },
+    {
+      "n": 9,
+      "tool": "verify_certification",
+      "arguments": {
+        "name": "cloud architecture certification"
+      },
+      "result": null,
+      "error": "ExternalServiceError: registry request timed out after 30s",
+      "retries": 2
+    },
+    {
+      "n": 10,
+      "tool": "ask_followup",
+      "arguments": {
+        "question": "You mentioned a cloud architecture certification — which one exactly (issuer and exact name), and when did you complete it? The registry is currently unreachable, so I could not verify it and have not added it yet.",
+        "about": "certification"
+      },
+      "result": {
+        "asked": true,
+        "question": "You mentioned a cloud architecture certification — which one exactly (issuer and exact name), and when did you complete it? The registry is currently unreachable, so I could not verify it and have not added it yet."
+      },
+      "error": null,
+      "retries": 0
+    }
+  ],
+  "final_message": "Thanks Maya — I have updated your existing achievement (A-001) with what you personally did, the measured outcome and the go-live date; added the skill 'Workshop facilitation'; added the skill 'Process mapping'; added the skill 'API design'; added the skill 'Cross-team coordination'; asked you one follow-up question. Everything written is backed by your own words in this conversation; anything vague or conflicting was held back.",
+  "store_after": {
+    "professionals": {
+      "P-1007": {
+        "professional_id": "P-1007",
+        "name": "Maya Rao",
+        "current_role": "Senior Business Analyst",
+        "current_employer": "NorthStar Insurance",
+        "experience_years": 7
+      }
+    },
+    "achievements": {
+      "A-001": {
+        "achievement_id": "A-001",
+        "professional_id": "P-1007",
+        "title": "Claims workflow redesign",
+        "description": "Helped redesign the motor claims intake workflow. Led the requirements work for automating our motor claims intake process.",
+        "contribution": "I ran workshops with claims, fraud and technology teams, mapped the existing process and wrote the functional requirements. I also helped define the API payloads.",
+        "skills": [
+          "API design",
+          "Cross-team coordination",
+          "Process mapping",
+          "Workshop facilitation"
+        ],
+        "outcome": "The average claim-registration time came down from around 18 minutes to 7 minutes. The solution is now used by about 120 claims handlers.",
+        "period": "November 2025",
+        "evidence_message_ids": [
+          "M2",
+          "M4",
+          "M6",
+          "M8"
+        ],
+        "confidence": 0.85,
+        "status": "supported",
+        "source": "agent_overwrite"
+      }
+    },
+    "profile_facts": {
+      "F-001": {
+        "fact_id": "F-001",
+        "professional_id": "P-1007",
+        "fact_type": "skill",
+        "value": "Business analysis",
+        "evidence_message_ids": [],
+        "confidence": null,
+        "status": "supported",
+        "source": "seed"
+      },
+      "F-002": {
+        "fact_id": "F-002",
+        "professional_id": "P-1007",
+        "fact_type": "skill",
+        "value": "Requirements gathering",
+        "evidence_message_ids": [],
+        "confidence": null,
+        "status": "supported",
+        "source": "seed"
+      },
+      "F-003": {
+        "fact_id": "F-003",
+        "professional_id": "P-1007",
+        "fact_type": "skill",
+        "value": "SQL",
+        "evidence_message_ids": [],
+        "confidence": null,
+        "status": "supported",
+        "source": "seed"
+      },
+      "F-004": {
+        "fact_id": "F-004",
+        "professional_id": "P-1007",
+        "fact_type": "skill",
+        "value": "Claims operations",
+        "evidence_message_ids": [],
+        "confidence": null,
+        "status": "supported",
+        "source": "seed"
+      },
+      "F-005": {
+        "fact_id": "F-005",
+        "professional_id": "P-1007",
+        "fact_type": "skill",
+        "value": "Workshop facilitation",
+        "evidence_message_ids": [
+          "M4"
+        ],
+        "confidence": 0.8,
+        "status": "supported",
+        "source": "agent"
+      },
+      "F-006": {
+        "fact_id": "F-006",
+        "professional_id": "P-1007",
+        "fact_type": "skill",
+        "value": "Process mapping",
+        "evidence_message_ids": [
+          "M4"
+        ],
+        "confidence": 0.8,
+        "status": "supported",
+        "source": "agent"
+      },
+      "F-007": {
+        "fact_id": "F-007",
+        "professional_id": "P-1007",
+        "fact_type": "skill",
+        "value": "API design",
+        "evidence_message_ids": [
+          "M4"
+        ],
+        "confidence": 0.8,
+        "status": "supported",
+        "source": "agent"
+      },
+      "F-008": {
+        "fact_id": "F-008",
+        "professional_id": "P-1007",
+        "fact_type": "skill",
+        "value": "Cross-team coordination",
+        "evidence_message_ids": [
+          "M11"
+        ],
+        "confidence": 0.8,
+        "status": "supported",
+        "source": "agent"
+      }
+    },
+    "review_queue": [],
+    "followups": [
+      {
+        "question": "You mentioned a cloud architecture certification — which one exactly (issuer and exact name), and when did you complete it? The registry is currently unreachable, so I could not verify it and have not added it yet.",
+        "about": "certification"
+      }
+    ]
+  }
+}

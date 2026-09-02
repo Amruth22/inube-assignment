@@ -70,22 +70,26 @@ y/N prompt on stdin.
 
 ## The four scenarios (`traces/`)
 
-- **S1** (C-204): recognises that "automating our motor claims intake
-  process" is the existing achievement A-001 under another name; enriches it
-  (confirmation → overwrite) with contribution, outcome (18→7 min, ~120
-  handlers) and period (Nov 2025); adds 4 evidenced skills; drops the
-  retracted "managed the engineering team" claim and keeps only the
-  corrected coordination version; the vague "cloud architecture
-  certification" gets one registry failure, a successful retry, two candidate
-  matches — so nothing is stored and one follow-up is asked.
+`traces/s1..s4` were produced by **claude-sonnet-4-5**; `traces/mock/` holds
+the same four runs from the offline planner for comparison.
+
+- **S1** (C-204): 3 searches, then recognises that "automating our motor
+  claims intake process" is the existing achievement A-001 under another
+  name; enriches it (confirmation → overwrite) with contribution, outcome
+  (18→7 min, ~120 handlers), period (Nov 2025), skills and evidence M2/M4/M6/M8;
+  does not record the retracted "managed the engineering team" claim; asks
+  one follow-up naming candidate certifications instead of storing the vague
+  one. 7 calls, 1 write.
 - **S2** (C-205 on S1 state): "entirely responsible for delivering it"
-  conflicts with M11 ("the engineering manager owned the team"), so nothing
-  is written — the claim is parked via `flag_for_human_review`. The 60%
-  figure is consistent with what is already stored, so no change is needed.
-- **S3** (C-206 on S1 state): nothing new — zero writes, zero tool calls.
-- **S4** (C-204 with `TRACCIA_FORCE_FAIL=1`): the registry fails all 3
-  attempts; the failure is logged with its retries, no certification is
-  stored, and the follow-up tells Maya verification is pending.
+  conflicts with M4/M9–M11, so nothing is written — the claim is parked via
+  `flag_for_human_review` citing those messages. The 60% figure is
+  consistent with the stored 18→7 min, so no change is needed. 0 writes.
+- **S3** (C-206 on S1 state): nothing new — 4 read-only calls to answer
+  "how is my profile looking", 0 writes, 0 flags, 0 follow-ups. (The mock
+  planner makes 0 calls here.)
+- **S4** (C-204 with `TRACCIA_FORCE_FAIL=1`): same enrichment as S1; the
+  registry fails all 3 attempts (logged as one call with `retries: 2`), no
+  certification is stored, one follow-up asks for the exact name.
 
 `store_after` in each trace is a raw `dump_store()`.
 
@@ -93,19 +97,24 @@ y/N prompt on stdin.
 
 `claude-sonnet-4-5`: strong multi-step tool use at low latency/cost, which is
 what this task is — many small tool decisions, no long-form generation. The
-committed traces were produced by the **mock planner** because this
-submission was built in an environment without API credentials; run
-`python run_all.py` with `ANTHROPIC_API_KEY` set to regenerate them with the
-real model. The mock follows the same written policy as the system prompt
-and is used by the tests precisely because it is deterministic.
+offline mock planner follows the same written policy as the system prompt
+and exists so the tests are deterministic and the code runs without a key.
 
 ## Known wrong or missing
 
+- In S1 the real model asked the certification follow-up **without calling
+  `verify_certification` first** (S4 did call it). Defensible — the name was
+  too vague to store either way — but the system prompt says verify first,
+  so the prompt/tool description could be tightened.
+- The real model stored the new skills inside the achievement's `skills`
+  list rather than as separate `skill` profile facts, so they are not
+  findable via `search_profile` on facts. The mock does the opposite. Which
+  is right is a product decision I would ask about.
 - The mock planner's claim/retraction/conflict detection is regex-level; on
   genuinely unseen phrasing the real model is the answer, the mock only
   degrades to conservative behaviour (search, then ask or flag).
-- `search_profile` is lexical and doesn't index achievement outcomes, so the
-  S2 search legitimately finds nothing and the flag cites message ids only.
+- `search_profile` is lexical and doesn't index achievement outcomes, so
+  some legitimate matches are missed (the mock's S2 search finds nothing).
 - Missing tool: **`update_achievement(fields)`** — a partial, reversible
   enrichment. The only way to add an outcome to an existing achievement is
   the irreversible `overwrite_achievement`, which forces a human approval
@@ -115,9 +124,7 @@ and is used by the tests precisely because it is deterministic.
   refuse duplicates but nothing can mark an old fact stale.
 - Chat mode with the mock treats each typed line independently; the real
   model keeps the whole session in context.
-- No token/cost accounting, and the LLM path has had no live end-to-end run
-  for the reason above — the loop is exercised by the mock through the same
-  code path.
+- No token/cost accounting; a run of all four scenarios is ~25 model calls.
 
 ## AI tools used
 
