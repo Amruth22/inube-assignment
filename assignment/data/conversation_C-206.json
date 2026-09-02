@@ -1,0 +1,10 @@
+{
+  "conversation_id": "C-206",
+  "professional_id": "P-1007",
+  "note": "No new profile information. The agent should do very little here.",
+  "messages": [
+    {"id": "M16", "speaker": "professional", "text": "Hi — how is my profile looking these days?"},
+    {"id": "M17", "speaker": "assistant",    "text": "Happy to summarise it for you."},
+    {"id": "M18", "speaker": "professional", "text": "Also, what does Traccia actually do with these conversations? Just curious."}
+  ]
+}
