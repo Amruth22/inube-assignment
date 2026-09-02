@@ -1,58 +1,71 @@
 """run_all.py — produce traces/s1..s4 for the four required scenarios.
 
 S1  fresh profile + C-204
-S2  S1 end state, then C-205   (contradiction of earlier evidence)
+S2  S1 end state, then C-205   (a later claim contradicts earlier evidence)
 S3  S1 end state, then C-206   (nothing new)
 S4  fresh profile + C-204 with TRACCIA_FORCE_FAIL=1 (registry down all run)
 
-S2 and S3 start from a snapshot of S1's store, exactly as the assignment
-describes. Human approval of destructive actions is simulated (--auto-approve
-semantics); see README.
+Each scenario writes traces/<name>.json (the structured log) and
+traces/<name>.txt (what the console printed).
 """
 
-from __future__ import annotations
-
+import contextlib
+import copy
+import json
 import os
 import sys
 
-# Seed 4 is documented in the README: the first registry call fails once,
-# succeeds on retry, and returns two candidate matches — so S1 exercises both
-# the retry path and the ambiguity path, while S4 covers the full outage.
-os.environ.setdefault("TRACCIA_SEED", "4")
+os.environ.setdefault("TRACCIA_SEED", "4")   # documented in the README
 
-from agent import default_model, run_batch          # noqa: E402
-from toolkit import restore_store, snapshot_store   # noqa: E402
+import traccia_store as store                # noqa: E402
+from agent import run_conversation           # noqa: E402
 
 PROFILE = "data/profile.json"
-C204 = "data/conversation_C-204.json"
-C205 = "data/conversation_C-205.json"
-C206 = "data/conversation_C-206.json"
+C204, C205, C206 = (f"data/conversation_C-{n}.json" for n in (204, 205, 206))
 
 
-def main() -> None:
-    model = sys.argv[1] if len(sys.argv) > 1 else default_model()
+class Tee:
+    """Print to the terminal and to a file at the same time."""
+    def __init__(self, file):
+        self.file, self.stdout = file, sys.stdout
 
-    run_batch(PROFILE, C204, model_name=model, scenario="S1",
-              trace_out="traces/s1.json", console_out="traces/s1.txt")
-    s1_state = snapshot_store()
+    def write(self, text):
+        self.stdout.write(text)
+        self.file.write(text)
 
-    print()
-    restore_store(s1_state)
-    run_batch(PROFILE, C205, context_paths=[C204], model_name=model, scenario="S2",
-              fresh_store=False, trace_out="traces/s2.json",
-              console_out="traces/s2.txt")
+    def flush(self):
+        self.stdout.flush()
+        self.file.flush()
 
-    print()
-    restore_store(s1_state)
-    run_batch(PROFILE, C206, context_paths=[C204], model_name=model, scenario="S3",
-              fresh_store=False, trace_out="traces/s3.json",
-              console_out="traces/s3.txt")
 
-    print()
+def run(name, **kwargs):
+    os.makedirs("traces", exist_ok=True)
+    with open(f"traces/{name}.txt", "w") as log, contextlib.redirect_stdout(Tee(log)):
+        trace = run_conversation(scenario=name.upper(), **kwargs)
+    with open(f"traces/{name}.json", "w") as fh:
+        json.dump(trace, fh, indent=2, ensure_ascii=False)
+    print(f"(trace written to traces/{name}.json)\n")
+
+
+def restore(snapshot):
+    """Put the in-memory store back to a dump_store() snapshot."""
+    for field, value in snapshot.items():
+        setattr(store.STORE, field, copy.deepcopy(value))
+
+
+def main():
+    run("s1", profile_path=PROFILE, conversation_path=C204)
+    after_s1 = store.dump_store()
+
+    restore(after_s1)
+    run("s2", profile_path=PROFILE, conversation_path=C205, earlier=[C204], reload_profile=False)
+
+    restore(after_s1)
+    run("s3", profile_path=PROFILE, conversation_path=C206, earlier=[C204], reload_profile=False)
+
     os.environ["TRACCIA_FORCE_FAIL"] = "1"
     try:
-        run_batch(PROFILE, C204, model_name=model, scenario="S4",
-                  trace_out="traces/s4.json", console_out="traces/s4.txt")
+        run("s4", profile_path=PROFILE, conversation_path=C204)
     finally:
         del os.environ["TRACCIA_FORCE_FAIL"]
 

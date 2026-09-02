@@ -1,3 +1,0 @@
-== S3: C-206 on Maya Rao (mock) ==
-agent> Nothing in this conversation changes the profile, so I have written nothing. Happy to summarise what is currently on it, Maya — and to answer your question: these conversations are only used to keep your own profile accurate; nothing is stored unless you actually said it.
-(trace written to traces/s3.json)

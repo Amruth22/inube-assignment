@@ -4,15 +4,93 @@
   "seed": 4,
   "force_fail": false,
   "conversation": "C-206",
-  "approval_mode": "auto (human approval simulated by harness)",
+  "approval": "auto (human approval simulated by the harness)",
   "summary": {
-    "tool_calls": 0,
+    "tool_calls": 3,
     "writes": 0,
     "errors": 0,
     "what_changed": "no changes"
   },
-  "calls": [],
-  "final_message": "This conversation didn't include any new work details, achievements, or claims to verify — just a check-in and a question about how Traccia works. So I made no changes to your profile.\n\nA couple of quick notes:\n- Your profile already reflects the motor claims intake automation work from our last conversation (workshops, functional requirements, API payload design, the 18→7 minute improvement, ~120 users, November 2025 go-live), with the engineering management claim correctly recorded as coordination/dependency tracking rather than formal ownership, per your clarification.\n- On your cloud architecture certification: I don't see it stored yet — I'll need the exact certification name to verify it in the registry before it can be added as confirmed.\n\nOn your question: Traccia uses these conversations solely to keep your professional profile accurate — extracting concrete achievements, skills, and roles you describe, verifying what can be verified (like certifications), and flagging anything ambiguous for human review rather than guessing. Nothing is added unless you've clearly stated it.\n\nLet me know if you'd like to walk through your profile in detail or add that certification name.",
+  "calls": [
+    {
+      "n": 1,
+      "tool": "search_profile",
+      "arguments": {
+        "query": "Maya Rao achievements claims automation"
+      },
+      "result": {
+        "query": "Maya Rao achievements claims automation",
+        "result_count": 2,
+        "results": [
+          {
+            "record_type": "achievement",
+            "id": "A-001",
+            "title": "Claims workflow redesign",
+            "period": "First release live November 2025",
+            "match_score": 0.2
+          },
+          {
+            "record_type": "skill",
+            "id": "F-004",
+            "value": "Claims operations",
+            "match_score": 0.2
+          }
+        ]
+      },
+      "error": null,
+      "retries": 0
+    },
+    {
+      "n": 2,
+      "tool": "search_profile",
+      "arguments": {
+        "query": "cloud architecture certification"
+      },
+      "result": {
+        "query": "cloud architecture certification",
+        "result_count": 0,
+        "results": []
+      },
+      "error": null,
+      "retries": 0
+    },
+    {
+      "n": 3,
+      "tool": "get_achievement",
+      "arguments": {
+        "achievement_id": "A-001"
+      },
+      "result": {
+        "achievement_id": "A-001",
+        "professional_id": "P-1007",
+        "title": "Claims workflow redesign",
+        "description": "Led requirements work for automating the motor claims intake process, including running cross-functional workshops and defining API payloads.",
+        "contribution": "Ran workshops with claims, fraud and technology teams; mapped the existing process; wrote functional requirements; helped define API payloads; coordinated with the engineering manager and tracked engineering dependencies (did not formally manage the engineering team).",
+        "skills": [
+          "Requirements gathering",
+          "Process mapping",
+          "Cross-functional workshop facilitation",
+          "API requirements definition",
+          "Stakeholder coordination"
+        ],
+        "outcome": "Average claim-registration time reduced from ~18 minutes to ~7 minutes; solution used by ~120 claims handlers.",
+        "period": "First release live November 2025",
+        "evidence_message_ids": [
+          "M2",
+          "M4",
+          "M6",
+          "M8",
+          "M11"
+        ],
+        "confidence": null,
+        "status": "supported",
+        "source": "agent_overwrite"
+      },
+      "error": null,
+      "retries": 0
+    }
+  ],
+  "final_message": "Nothing to update from this conversation — it was just small talk and a platform question, so I made no changes to your profile (per our policy, we only write when there's a concrete new claim to ground).\n\nQuick summary of what's currently on file, since you asked:\n- **Achievement**: \"Claims workflow redesign\" — requirements leadership on motor claims intake automation, workshops across claims/fraud/tech, functional requirements and API payload definition, claim-registration time down from ~18 to ~7 minutes, ~120 handlers using it, first release Nov 2025. It also correctly reflects that you coordinated with (rather than formally managed) the engineering team, per your clarification.\n- Related skills like requirements gathering, process mapping, and stakeholder coordination are attached to that achievement.\n- Note: the cloud architecture certification you mentioned earlier hasn't been added yet — it still needs verification against the registry (I'd need the exact certification name to confirm it before storing it).\n\nOn your other question: Traccia uses these conversations only to extract and maintain your professional profile — achievements, skills, roles, certifications — grounded strictly in what you say. It doesn't infer or embellish beyond your own statements, and contradictions or retractions are handled carefully (e.g., corrections you make always override earlier claims).\n\nLet me know if you'd like to give the exact certification name so I can verify and add it.",
   "store_after": {
     "professionals": {
       "P-1007": {
@@ -28,23 +106,25 @@
         "achievement_id": "A-001",
         "professional_id": "P-1007",
         "title": "Claims workflow redesign",
-        "description": "Led requirements work for automating the motor claims intake process, including running workshops with claims, fraud, and technology teams, mapping the existing process, and helping define API payloads.",
-        "contribution": "Ran cross-team workshops (claims, fraud, technology), mapped the existing process, wrote functional requirements, and helped define API payloads.",
+        "description": "Led requirements work for automating the motor claims intake process, including running cross-functional workshops and defining API payloads.",
+        "contribution": "Ran workshops with claims, fraud and technology teams; mapped the existing process; wrote functional requirements; helped define API payloads; coordinated with the engineering manager and tracked engineering dependencies (did not formally manage the engineering team).",
         "skills": [
           "Requirements gathering",
           "Process mapping",
           "Cross-functional workshop facilitation",
-          "API requirements definition"
+          "API requirements definition",
+          "Stakeholder coordination"
         ],
         "outcome": "Average claim-registration time reduced from ~18 minutes to ~7 minutes; solution used by ~120 claims handlers.",
-        "period": "First release went live November 2025",
+        "period": "First release live November 2025",
         "evidence_message_ids": [
           "M2",
           "M4",
           "M6",
-          "M8"
+          "M8",
+          "M11"
         ],
-        "confidence": 0.9,
+        "confidence": null,
         "status": "supported",
         "source": "agent_overwrite"
       }
@@ -89,25 +169,13 @@
         "confidence": null,
         "status": "supported",
         "source": "seed"
-      },
-      "F-005": {
-        "fact_id": "F-005",
-        "professional_id": "P-1007",
-        "fact_type": "skill",
-        "value": "Cross-team dependency coordination",
-        "evidence_message_ids": [
-          "M11"
-        ],
-        "confidence": 0.7,
-        "status": "supported",
-        "source": "agent"
       }
     },
     "review_queue": [],
     "followups": [
       {
-        "question": "Which certification did you complete — AWS Certified Solutions Architect – Associate, or Google Professional Cloud Architect (or another one)?",
-        "about": "cloud architecture certification name"
+        "question": "Which specific certification did you complete — AWS Certified Solutions Architect – Associate, Google Professional Cloud Architect, or another one?",
+        "about": "cloud architecture certification"
       }
     ]
   }

@@ -2,12 +2,13 @@
 
 An agent that reads a conversation with a professional and decides what — if
 anything — should change on their career profile, making only those changes
-through the provided tools in `traccia_store.py`.
+through the tools in `traccia_store.py` (which is untouched).
 
 ## How to run
 
 ```bash
-pip install -r requirements.txt        # httpx (real model), pytest (tests)
+pip install -r requirements.txt          # httpx, pytest
+export ANTHROPIC_API_KEY=...
 
 # one conversation (the shape you will run on an unseen file)
 python agent.py --profile data/profile.json --conversation data/conversation_C-204.json
@@ -18,117 +19,117 @@ python run_all.py
 # chat mode
 python agent.py --chat
 
-# tests
+# tests (no API key needed)
 python -m pytest -q
 ```
 
-With `ANTHROPIC_API_KEY` exported, the agent uses **claude-sonnet-5** via
-the Messages API (raw `httpx`, no framework, no SDK). Without a key it falls
-back to a deterministic **offline mock planner** (`--model mock`) and says so
-on stderr. Seed: `TRACCIA_SEED=4` (documented below).
+Model: `claude-sonnet-5` (override with `TRACCIA_MODEL`). Seed: `TRACCIA_SEED=4`.
 
 ## How it works
 
+Two files, ~450 lines in total.
+
 ```
-conversation ──> agent.py (loop) ──> model (Anthropic API or mock planner)
-                      │                      │ tool_use blocks
-                      ▼                      ▼
-               toolkit.Executor  ── policy checks ──> traccia_store.call_tool
-                      │
-                      └──> trace (every call, args, result, error, retries)
+conversation ──> agent.py  run_agent()  ──> Claude (Messages API over httpx)
+                       │                        │  tool_use blocks
+                       ▼                        ▼
+                 toolkit.py  Executor.run()  ── policy checks ──> traccia_store.call_tool()
+                       │
+                       └──> trace: every call, its arguments, result, error, retries
 ```
 
-- **`agent.py`** — the loop: send system prompt + tool schemas + transcript,
-  execute each `tool_use` the model returns, feed results back, stop on a
-  final text message (capped at 16 turns). Batch and chat modes share it.
-- **`toolkit.py`** — the part that keeps the profile honest. The store is
-  deliberately permissive, so the executor enforces what it won't:
-  - every write must cite `evidence_message_ids` that actually exist in the
-    conversations of this run (no invented evidence);
-  - near-duplicate facts and achievement titles are refused, with an error
-    message that tells the model what to do instead;
-  - a certification can only be stored `supported` after
-    `verify_certification` confirmed that name this session;
-  - `verify_certification` is retried (3 attempts, backoff) before its
-    failure is surfaced to the model as an ordinary tool error;
-  - `overwrite_achievement` only works with a token a *human* approved:
-    the model can request confirmation but can never approve it;
-  - a tool-call budget stops runaway loops; every call (including refused
-    ones) is logged to the trace.
-- **`model.py`** — two backends behind one `complete()` interface: the real
-  API client with retry/backoff on 429/5xx/timeouts, and the mock planner.
-- The tool descriptions shown to the model are rewritten in `toolkit.py`
-  (`AGENT_TOOL_SPECS`) — they carry the policy ("search before writing",
-  "zero or multiple registry matches ⇒ ask, don't store"), which is half of
-  what steers tool choice.
+**`agent.py`** — the loop. Send system prompt + tool list + transcript; for
+each `tool_use` block Claude returns, call `Executor.run()`, append the result,
+repeat; stop when Claude replies with text (or after 16 turns). Batch mode and
+chat mode share this loop. The system prompt is eight rules that map directly
+onto the scenarios (ground everything, search before writing, retractions win,
+contradictions go to a human, destructive actions need approval, verify
+certifications, be quiet when there is nothing, be frugal).
 
-**Human approval is simulated.** In batch mode the harness auto-approves
-confirmation tokens (`request_confirmation` results are marked
-`"approved (human approval SIMULATED by harness)"` in the traces); pass
-`--no-auto-approve` to see the refusal path. In chat mode approval is a real
-y/N prompt on stdin.
+**`toolkit.py`** — the safety rails. The store is permissive by design, so the
+executor enforces what it won't, *before* a call reaches the store:
 
-## The four scenarios (`traces/`)
+- every write must cite `evidence_message_ids` that exist in this run's
+  conversations — no invented evidence;
+- duplicate facts and duplicate achievement titles are refused, with an error
+  that tells the model what to do instead;
+- a certification can be `supported` only after `verify_certification`
+  returned that name this run;
+- `verify_certification` is retried (3 attempts, backoff) before its failure
+  is passed to the model as an ordinary tool error;
+- `overwrite_achievement` needs a token a *human* approved. The model can
+  request approval but can never grant it. **In batch mode the harness
+  simulates the human** (the trace says so on every such call); in chat mode
+  it is a real y/N prompt on stdin; `--no-auto-approve` shows the refusal path;
+- a call budget stops runaway loops; every call, refused or not, is logged.
 
-`traces/s1..s4` were produced by **claude-sonnet-5**; `traces/mock/` holds
-the same four runs from the offline planner for comparison.
+`TOOLS` in `toolkit.py` is what Claude reads about each tool. The wording
+carries the policy ("search before writing", "zero or multiple registry
+matches ⇒ ask, don't store") — that is half of what steers tool choice.
 
-- **S1** (C-204): searches, reads A-001, calls `verify_certification` (one
-  timeout, retried, then two candidate matches), then recognises that
-  "automating our motor claims intake process" is the existing achievement
-  A-001 under another name and enriches it (confirmation → overwrite) with
-  contribution, outcome (18→7 min, ~120 handlers), period (Nov 2025) and
-  evidence M2/M4/M6/M8; does not record the retracted "managed the
-  engineering team" claim but stores the corrected version as a skill
-  ("Cross-team dependency coordination", evidence M11); asks one follow-up
-  naming the two candidate certifications instead of storing the vague one.
-  9 calls, 2 writes.
+## The four scenarios (`traces/`, produced by claude-sonnet-5)
+
+- **S1** (C-204): 2 searches, reads A-001, calls the registry (one timeout,
+  retried, then two candidate matches); recognises that "automating our motor
+  claims intake process" is the existing achievement A-001 under another name
+  and enriches it (confirmation → overwrite) with contribution, outcome
+  (18→7 min, ~120 handlers), period (Nov 2025) and evidence M2/M4/M6/M8/M11;
+  does not record the retracted "managed the engineering team" claim; asks
+  one follow-up naming the two candidate certifications instead of storing
+  the vague one. 7 calls, 1 write.
 - **S2** (C-205 on S1 state): "entirely responsible for delivering it"
-  conflicts with M4/M11, so nothing is written — the claim is parked via
+  conflicts with M4/M11, so nothing is written — it is parked via
   `flag_for_human_review`. The 60% figure is consistent with the stored
-  18→7 min, so no change is needed. 0 writes.
-- **S3** (C-206 on S1 state): nothing new — **0 tool calls, 0 writes**; the
-  reply answers Maya's question about what Traccia does.
-- **S4** (C-204 with `TRACCIA_FORCE_FAIL=1`): same enrichment and skill as
-  S1; the registry fails all 3 attempts (one call with `retries: 2`), no
-  certification is stored, one follow-up asks for the exact name.
+  18→7 min, so no change is needed. 4 calls, 0 writes.
+- **S3** (C-206 on S1 state): nothing new — 3 read-only calls to answer "how
+  is my profile looking", 0 writes, 0 flags, 0 follow-ups.
+- **S4** (C-204 with `TRACCIA_FORCE_FAIL=1`): the registry fails all 3
+  attempts (one call with `retries: 2`), no certification is stored, one
+  follow-up asks for the exact name; A-001 is enriched as in S1 and the
+  corrected coordination claim is stored as a skill (evidence M11). 8 calls,
+  2 writes.
+
+Runs are not byte-identical between executions — the model sometimes stores
+the M11 coordination claim as a separate skill and sometimes folds it into the
+achievement — but the invariants hold every time: no write without evidence,
+no duplicate, no unverified certification, no overwrite without approval.
 
 `store_after` in each trace is a raw `dump_store()`.
 
+## Tests
+
+Five assertions in `tests/test_agent.py`, no API key needed: invented or
+missing evidence is refused; duplicates are refused; an overwrite without human
+approval fails and leaves the record untouched; a dead registry becomes a
+normal error after 2 retries and blocks a "supported" certification; the loop
+reports an unknown-tool request back to the model instead of crashing (using a
+two-line scripted fake model).
+
 ## Which model and why
 
-`claude-sonnet-5`: strong multi-step tool use at low latency/cost, which is
-what this task is — many small tool decisions, no long-form generation. The
-offline mock planner follows the same written policy as the system prompt
-and exists so the tests are deterministic and the code runs without a key.
+`claude-sonnet-5`: strong multi-step tool use at low cost and latency, which
+is what this task is — many small decisions, no long-form generation. A run of
+all four scenarios is roughly 25 model calls.
 
 ## Known wrong or missing
 
-- In S2 the model re-verified the certification from the earlier conversation
-  and asked the follow-up again, even though that question was already
-  pending from S1. Harmless but redundant; the executor could refuse a
-  duplicate follow-up the same way it refuses duplicate facts.
-- The model kept the original title "Claims workflow redesign" on A-001;
-  arguably "Motor claims intake automation" is now the better name. Renaming
-  is a product call, not something the agent should decide alone.
-- The mock planner's claim/retraction/conflict detection is regex-level; on
-  genuinely unseen phrasing the real model is the answer, the mock only
-  degrades to conservative behaviour (search, then ask or flag).
-- `search_profile` is lexical and doesn't index achievement outcomes, so
-  some legitimate matches are missed (the mock's S2 search finds nothing).
+- The model kept the original title "Claims workflow redesign" on A-001, where
+  "Motor claims intake automation" is arguably better. Renaming is a product
+  call, not one the agent should make alone.
+- `search_profile` is lexical and does not index achievement outcomes, so some
+  legitimate matches are missed; the prompt asks for a second query to soften
+  this.
 - Missing tool: **`update_achievement(fields)`** — a partial, reversible
-  enrichment. The only way to add an outcome to an existing achievement is
-  the irreversible `overwrite_achievement`, which forces a human approval
-  for what is really an additive edit. I used confirmation + overwrite with
-  the full merged record instead.
-- Missing tool: a way to **supersede/retract a profile fact** — policy can
-  refuse duplicates but nothing can mark an old fact stale.
-- Chat mode with the mock treats each typed line independently; the real
-  model keeps the whole session in context.
-- No token/cost accounting; a run of all four scenarios is ~25 model calls.
+  enrichment. The only way to add an outcome to an existing achievement is the
+  irreversible `overwrite_achievement`, which forces human approval for what
+  is really an additive edit. I used confirmation + overwrite with the full
+  merged record instead.
+- Missing tool: a way to **retract or supersede a profile fact** — policy can
+  refuse duplicates, but nothing can mark an old fact stale.
+- No token or cost accounting.
 
 ## AI tools used
 
-Built with **Claude Code** (Anthropic): the agent loop, policy layer, mock
-planner, tests and this README were written iteratively with it against the
-assignment spec, then reviewed and trimmed by hand. No other AI tools.
+Built with **Claude Code** (Anthropic): the loop, policy layer, tests and this
+README were written iteratively with it against the assignment spec, then
+reviewed and simplified by hand. No other AI tools.

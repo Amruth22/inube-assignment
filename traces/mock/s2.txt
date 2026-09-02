@@ -1,5 +1,0 @@
-== S2: C-205 on Maya Rao (mock) ==
-[tool] search_profile({"query": "project reduced registration time by 60% entirely responsible"}) -> {"query": "project reduced registration time by 60% entirely responsible", "result_count": 0, "results": []}
-[tool] flag_for_human_review({"reason": "Message M13 claims to be 'entirely responsible', which overstates or conflicts with earlier, more specific statements on record. Parked for human re…) -> {"queued": true, "review_id": "R-001"}
-agent> Thanks Maya — I have sent the ownership claim to a human reviewer rather than changing the profile. Everything written is backed by your own words in this conversation; anything vague or conflicting was held back.
-(trace written to traces/s2.json)
