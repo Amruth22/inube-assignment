@@ -142,10 +142,3 @@ There is also no way to retract or supersede a profile fact. The policy can
 refuse duplicates, but nothing can mark an old fact as stale.
 
 There is no token or cost accounting.
-
-## AI tools used
-
-I used an AI coding assistant for this. The loop, the policy layer, the tests
-and the first draft of this README were written iteratively with it against the
-assignment spec, then I reviewed and simplified them by hand. I can explain and
-change any line of it.
