@@ -16,8 +16,11 @@ import json
 import os
 
 import anthropic
+from dotenv import load_dotenv
 
 import traccia_store as store
+
+load_dotenv()  # picks up ANTHROPIC_API_KEY (and TRACCIA_* settings) from a local .env file
 from toolkit import TOOLS, Executor
 
 MODEL = os.environ.get("TRACCIA_MODEL", "claude-sonnet-5")

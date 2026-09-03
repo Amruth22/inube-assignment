@@ -7,8 +7,8 @@ through the tools in `traccia_store.py` (which is untouched).
 ## How to run
 
 ```bash
-pip install -r requirements.txt          # anthropic SDK, pytest
-export ANTHROPIC_API_KEY=...
+pip install -r requirements.txt          # anthropic SDK, python-dotenv, pytest
+cp .env.example .env                     # then put your ANTHROPIC_API_KEY in .env
 
 # one conversation (the shape you will run on an unseen file)
 python agent.py --profile data/profile.json --conversation data/conversation_C-204.json
