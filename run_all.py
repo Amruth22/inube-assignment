@@ -15,6 +15,7 @@ import json
 import os
 import sys
 
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # Windows consoles default to cp1252
 os.environ.setdefault("TRACCIA_SEED", "4")   # documented in the README
 
 import traccia_store as store                # noqa: E402
@@ -40,9 +41,9 @@ class Tee:
 
 def run(name, **kwargs):
     os.makedirs("traces", exist_ok=True)
-    with open(f"traces/{name}.txt", "w") as log, contextlib.redirect_stdout(Tee(log)):
+    with open(f"traces/{name}.txt", "w", encoding="utf-8") as log, contextlib.redirect_stdout(Tee(log)):
         trace = run_conversation(scenario=name.upper(), **kwargs)
-    with open(f"traces/{name}.json", "w") as fh:
+    with open(f"traces/{name}.json", "w", encoding="utf-8") as fh:
         json.dump(trace, fh, indent=2, ensure_ascii=False)
     print(f"(trace written to traces/{name}.json)\n")
 

@@ -14,6 +14,7 @@ How it works, in one paragraph:
 import argparse
 import json
 import os
+import sys
 
 import anthropic
 from dotenv import load_dotenv
@@ -214,6 +215,7 @@ def chat(profile_path):
 # ---------------------------------------------------------------------------
 
 def main():
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # Windows consoles default to cp1252
     ap = argparse.ArgumentParser(description="Traccia profile-update agent")
     ap.add_argument("--profile", default="data/profile.json")
     ap.add_argument("--conversation", help="conversation JSON to process")
@@ -236,7 +238,7 @@ def main():
                              scenario=args.scenario,
                              approve="never" if args.no_auto_approve else "auto")
     if args.trace_out:
-        with open(args.trace_out, "w") as fh:
+        with open(args.trace_out, "w", encoding="utf-8") as fh:
             json.dump(trace, fh, indent=2, ensure_ascii=False)
         print(f"(trace written to {args.trace_out})")
 
