@@ -8,7 +8,7 @@ through the tools in `traccia_store.py` (which is untouched).
 
 ```bash
 pip install -r requirements.txt          # anthropic SDK, python-dotenv, pytest
-cp .env.example .env                     # then put your ANTHROPIC_API_KEY in .env
+echo 'ANTHROPIC_API_KEY=sk-ant-...' > .env  # your key; .env is git-ignored
 
 # one conversation (the shape you will run on an unseen file)
 python agent.py --profile data/profile.json --conversation data/conversation_C-204.json
@@ -108,8 +108,10 @@ two-line scripted fake model).
 ## Which model and why
 
 `claude-sonnet-5`: strong multi-step tool use at low cost and latency, which
-is what this task is — many small decisions, no long-form generation. A run of
-all four scenarios is roughly 25 model calls.
+is what this task is — many small decisions, no long-form generation. Extended
+thinking is switched off (`thinking={"type": "disabled"}`): the policy lives in
+the prompt and the executor, and without thinking each call is faster and
+cheaper. A run of all four scenarios is roughly 25 model calls.
 
 ## Known wrong or missing
 

@@ -78,8 +78,9 @@ def ask_model(messages):
     global _client
     if _client is None:
         _client = anthropic.Anthropic(max_retries=4)
-    reply = _client.messages.create(model=MODEL, max_tokens=8000, system=SYSTEM_PROMPT,
-                                    tools=TOOLS, messages=messages)
+    reply = _client.messages.create(model=MODEL, max_tokens=4000, system=SYSTEM_PROMPT,
+                                    tools=TOOLS, messages=messages,
+                                    thinking={"type": "disabled"})  # no extended thinking
     return reply.to_dict()   # plain dicts, so the loop below is easy to read and test
 
 
