@@ -14,9 +14,8 @@ How it works, in one paragraph:
 import argparse
 import json
 import os
-import time
 
-import httpx
+import anthropic
 
 import traccia_store as store
 from toolkit import TOOLS, Executor
@@ -64,32 +63,21 @@ you did not make."""
 
 
 # ---------------------------------------------------------------------------
-# 1. Talking to Claude  (plain HTTP, no SDK, no framework)
+# 1. Talking to Claude  (official SDK, no framework)
 # ---------------------------------------------------------------------------
 
-def ask_claude(messages):
-    """One call to the Messages API. Retries rate limits and server errors."""
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        raise RuntimeError("ANTHROPIC_API_KEY is not set")
-    body = {"model": MODEL, "max_tokens": 8000, "system": SYSTEM_PROMPT,
-            "tools": TOOLS, "messages": messages}
-    headers = {"x-api-key": api_key, "anthropic-version": "2023-06-01"}
-    url = os.environ.get("ANTHROPIC_BASE_URL", "https://api.anthropic.com") + "/v1/messages"
+_client = None
 
-    for attempt in range(4):
-        try:
-            r = httpx.post(url, headers=headers, json=body, timeout=120)
-        except httpx.HTTPError as exc:            # network problem
-            problem = str(exc)
-        else:
-            if r.status_code == 200:
-                return r.json()
-            if r.status_code not in (429, 500, 502, 503, 529):
-                raise RuntimeError(f"API error {r.status_code}: {r.text[:300]}")
-            problem = f"HTTP {r.status_code}"
-        time.sleep(2 ** attempt)
-    raise RuntimeError(f"Claude API unavailable after retries: {problem}")
+
+def ask_claude(messages):
+    """One call to the Messages API. The SDK reads ANTHROPIC_API_KEY and
+    retries rate limits / server errors on its own (max_retries below)."""
+    global _client
+    if _client is None:
+        _client = anthropic.Anthropic(max_retries=4)
+    reply = _client.messages.create(model=MODEL, max_tokens=8000, system=SYSTEM_PROMPT,
+                                    tools=TOOLS, messages=messages)
+    return reply.to_dict()   # plain dicts, so the loop below is easy to read and test
 
 
 # ---------------------------------------------------------------------------

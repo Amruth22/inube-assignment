@@ -7,7 +7,7 @@ through the tools in `traccia_store.py` (which is untouched).
 ## How to run
 
 ```bash
-pip install -r requirements.txt          # httpx, pytest
+pip install -r requirements.txt          # anthropic SDK, pytest
 export ANTHROPIC_API_KEY=...
 
 # one conversation (the shape you will run on an unseen file)
@@ -30,7 +30,7 @@ Model: `claude-sonnet-5` (override with `TRACCIA_MODEL`). Seed: `TRACCIA_SEED=4`
 Two files, ~450 lines in total.
 
 ```
-conversation ──> agent.py  run_agent()  ──> Claude (Messages API over httpx)
+conversation ──> agent.py  run_agent()  ──> Claude (Messages API via anthropic SDK)
                        │                        │  tool_use blocks
                        ▼                        ▼
                  toolkit.py  Executor.run()  ── policy checks ──> traccia_store.call_tool()
