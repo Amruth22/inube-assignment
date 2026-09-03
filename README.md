@@ -1,16 +1,17 @@
-# Traccia — tool-using career agent
+# Traccia: a tool-using career agent
 
-An agent that reads a conversation with a professional and decides what — if
-anything — should change on their career profile, making only those changes
-through the tools in `traccia_store.py` (which is untouched).
+This is my take-home for the AI Engineer role. The agent reads a conversation
+between a professional and the Traccia bot, works out what (if anything) should
+change on their career profile, and makes only those changes through the tools
+in `traccia_store.py`. I did not touch that file.
 
-## How to run
+## Running it
 
 ```bash
 pip install -r requirements.txt          # anthropic SDK, python-dotenv, pytest
 echo 'ANTHROPIC_API_KEY=sk-ant-...' > .env  # your key; .env is git-ignored
 
-# one conversation (the shape you will run on an unseen file)
+# one conversation (this is the shape you will run on an unseen file)
 python agent.py --profile data/profile.json --conversation data/conversation_C-204.json
 
 # all four scenarios -> traces/s1..s4 (.json + .txt)
@@ -19,18 +20,19 @@ python run_all.py
 # chat mode
 python agent.py --chat
 
-# tests (no API key needed)
+# tests, no API key needed
 python -m pytest -q
 ```
 
-Model: `claude-sonnet-5` (override with `TRACCIA_MODEL`). Seed: `TRACCIA_SEED=4`.
+The model is `claude-sonnet-5`. Override it with `TRACCIA_MODEL`. The seed I
+used for the traces is `TRACCIA_SEED=4`.
 
 ## How it works
 
-Two files, ~450 lines in total.
+Two files, about 450 lines between them.
 
 ```
-conversation ──> agent.py  run_agent()  ──> model (Messages API via anthropic SDK)
+conversation ──> agent.py  run_agent()  ──> model (Messages API via the SDK)
                        │                        │  tool_use blocks
                        ▼                        ▼
                  toolkit.py  Executor.run()  ── policy checks ──> traccia_store.call_tool()
@@ -38,100 +40,112 @@ conversation ──> agent.py  run_agent()  ──> model (Messages API via anth
                        └──> trace: every call, its arguments, result, error, retries
 ```
 
-**`agent.py`** — the loop. Send system prompt + tool list + transcript; for
-each `tool_use` block the model returns, call `Executor.run()`, append the result,
-repeat; stop when the model replies with text (or after 16 turns). Batch mode and
-chat mode share this loop. The system prompt is eight rules that map directly
-onto the scenarios (ground everything, search before writing, retractions win,
-contradictions go to a human, destructive actions need approval, verify
-certifications, be quiet when there is nothing, be frugal).
+`agent.py` is the loop. It sends the system prompt, the tool list and the
+transcript to the model. For every `tool_use` block that comes back it calls
+`Executor.run()`, appends the result, and goes again. It stops when the model
+answers with text, or after 16 turns. Batch mode and chat mode share this one
+loop. The system prompt is eight rules, and each rule maps onto one of the
+scenarios: ground everything in a message id, search before writing,
+retractions win, contradictions go to a human, destructive actions need
+approval, verify certifications, stay quiet when there is nothing, and be
+frugal with calls.
 
-**`toolkit.py`** — the safety rails. The store is permissive by design, so the
-executor enforces what it won't, *before* a call reaches the store:
+`toolkit.py` is where the discipline lives. The store is permissive on purpose,
+so the executor enforces what the store won't, before a call ever reaches it.
+Every write has to cite `evidence_message_ids` that exist in this run's
+conversations. Duplicate facts and duplicate achievement titles are refused
+with an error that tells the model what to do instead. A certification can be
+stored as `supported` only if `verify_certification` returned that exact name
+in this run. The registry is retried three times with backoff, and if it is
+still down the failure goes back to the model as an ordinary tool error.
+`overwrite_achievement` needs a token a human approved. The model can ask for
+approval but can never grant it. In batch mode the harness plays the human,
+and every trace entry says so. In chat mode it is a real y/N prompt on stdin.
+`--no-auto-approve` shows what happens when the human says no. A call budget
+stops runaway loops, and every call is logged whether it was refused or not.
 
-- every write must cite `evidence_message_ids` that exist in this run's
-  conversations — no invented evidence;
-- duplicate facts and duplicate achievement titles are refused, with an error
-  that tells the model what to do instead;
-- a certification can be `supported` only after `verify_certification`
-  returned that name this run;
-- `verify_certification` is retried (3 attempts, backoff) before its failure
-  is passed to the model as an ordinary tool error;
-- `overwrite_achievement` needs a token a *human* approved. The model can
-  request approval but can never grant it. **In batch mode the harness
-  simulates the human** (the trace says so on every such call); in chat mode
-  it is a real y/N prompt on stdin; `--no-auto-approve` shows the refusal path;
-- a call budget stops runaway loops; every call, refused or not, is logged.
+`TOOLS` in `toolkit.py` is what the model reads about each tool. I wrote those
+descriptions myself rather than reusing the ones in the store, because the
+wording carries a lot of the policy. "Search before writing" and "zero or
+multiple registry matches means ask, don't store" live in those strings, and in
+my experience that steers tool choice about as much as the system prompt does.
 
-`TOOLS` in `toolkit.py` is what the model reads about each tool. The wording
-carries the policy ("search before writing", "zero or multiple registry
-matches ⇒ ask, don't store") — that is half of what steers tool choice.
+## The four scenarios
 
-## The four scenarios (`traces/`, produced by claude-sonnet-5)
+These are in `traces/`.
 
-- **S1** (C-204): 2 searches, reads A-001, calls the registry (one timeout,
-  retried, then two candidate matches); recognises that "automating our motor
-  claims intake process" is the existing achievement A-001 under another name
-  and enriches it (confirmation → overwrite) with contribution, outcome
-  (18→7 min, ~120 handlers), period (Nov 2025) and evidence M2/M4/M6/M8/M11;
-  does not record the retracted "managed the engineering team" claim; asks
-  one follow-up naming the two candidate certifications instead of storing
-  the vague one. 7 calls, 1 write.
-- **S2** (C-205 on S1 state): "entirely responsible for delivering it"
-  conflicts with M4/M11, so nothing is written — it is parked via
-  `flag_for_human_review`. The 60% figure is consistent with the stored
-  18→7 min, so no change is needed. 4 calls, 0 writes.
-- **S3** (C-206 on S1 state): nothing new — 3 read-only calls to answer "how
-  is my profile looking", 0 writes, 0 flags, 0 follow-ups.
-- **S4** (C-204 with `TRACCIA_FORCE_FAIL=1`): the registry fails all 3
-  attempts (one call with `retries: 2`), no certification is stored, one
-  follow-up asks for the exact name; A-001 is enriched as in S1 and the
-  corrected coordination claim is stored as a skill (evidence M11). 8 calls,
-  2 writes.
+S1 (C-204) is the main case. The agent searches twice, reads A-001, and calls
+the registry. The registry times out once, gets retried, then returns two
+candidate matches. The agent recognises that "automating our motor claims
+intake process" is the existing achievement A-001 under a different name and
+enriches it (confirmation, then overwrite) with the contribution, the outcome
+(18 to 7 minutes, about 120 handlers), the period (November 2025) and evidence
+M2, M4, M6, M8 and M11. It does not record the retracted "managed the
+engineering team" claim. It asks one follow-up naming the two candidate
+certifications instead of storing the vague one. Seven calls, one write.
 
-Runs are not byte-identical between executions — the model sometimes stores
-the M11 coordination claim as a separate skill and sometimes folds it into the
-achievement — but the invariants hold every time: no write without evidence,
-no duplicate, no unverified certification, no overwrite without approval.
+S2 (C-205 on the S1 state). "Entirely responsible for delivering it" conflicts
+with M4 and M11, so nothing is written and the claim goes to
+`flag_for_human_review`. The 60% figure is consistent with the stored 18 to 7
+minutes, so there is nothing to change. Four calls, no writes.
+
+S3 (C-206 on the S1 state). Nothing new. Three read-only calls to answer "how
+is my profile looking", no writes, no flags, no follow-ups.
+
+S4 (C-204 with `TRACCIA_FORCE_FAIL=1`). The registry fails all three attempts
+inside one call. No certification is stored and one follow-up asks for the
+exact name. A-001 is enriched exactly as in S1, and the corrected coordination
+claim is stored as a skill with M11 as evidence. Eight calls, two writes.
+
+Runs are not byte-identical from one execution to the next. Sometimes the model
+stores the M11 coordination claim as a separate skill and sometimes it folds it
+into the achievement. What holds every time is the set of invariants: no write
+without evidence, no duplicate, no unverified certification, no overwrite
+without approval.
 
 `store_after` in each trace is a raw `dump_store()`.
 
 ## Tests
 
-Five assertions in `tests/test_agent.py`, no API key needed: invented or
-missing evidence is refused; duplicates are refused; an overwrite without human
-approval fails and leaves the record untouched; a dead registry becomes a
-normal error after 2 retries and blocks a "supported" certification; the loop
-reports an unknown-tool request back to the model instead of crashing (using a
-two-line scripted fake model).
+Five assertions in `tests/test_agent.py`, none of which need an API key.
+Invented or missing evidence is refused. Duplicates are refused. An overwrite
+without human approval fails and leaves the record untouched. A dead registry
+turns into a normal error after two retries and blocks a `supported`
+certification. And the loop reports an unknown tool request back to the model
+instead of crashing, tested with a two-line scripted fake model.
 
-## Which model and why
+## Model choice
 
-`claude-sonnet-5`: strong multi-step tool use at low cost and latency, which
-is what this task is — many small decisions, no long-form generation. Extended
-thinking is switched off (`thinking={"type": "disabled"}`): the policy lives in
-the prompt and the executor, and without thinking each call is faster and
-cheaper. A run of all four scenarios is roughly 25 model calls.
+I went with `claude-sonnet-5` because this task is many small decisions with
+no long-form generation, and Sonnet handles multi-step tool use well at low
+cost and latency. Extended thinking is off. The policy is in the prompt and the
+executor, not in the model's reasoning, and without thinking each call is
+faster and cheaper. A full run of all four scenarios is roughly 25 model calls.
 
-## Known wrong or missing
+## What I know is wrong or missing
 
-- The model kept the original title "Claims workflow redesign" on A-001, where
-  "Motor claims intake automation" is arguably better. Renaming is a product
-  call, not one the agent should make alone.
-- `search_profile` is lexical and does not index achievement outcomes, so some
-  legitimate matches are missed; the prompt asks for a second query to soften
-  this.
-- Missing tool: **`update_achievement(fields)`** — a partial, reversible
-  enrichment. The only way to add an outcome to an existing achievement is the
-  irreversible `overwrite_achievement`, which forces human approval for what
-  is really an additive edit. I used confirmation + overwrite with the full
-  merged record instead.
-- Missing tool: a way to **retract or supersede a profile fact** — policy can
-  refuse duplicates, but nothing can mark an old fact stale.
-- No token or cost accounting.
+The model kept the original title "Claims workflow redesign" on A-001, where
+"Motor claims intake automation" is arguably better. I decided renaming is a
+product call and not something the agent should do on its own.
+
+`search_profile` is lexical and does not index achievement outcomes, so some
+legitimate matches get missed. The prompt asks for a second query to soften
+this, which is a workaround rather than a fix.
+
+The tool I missed most is a partial `update_achievement(fields)`. Adding an
+outcome to an existing achievement is an additive, reversible edit, but the
+only way to do it is the irreversible `overwrite_achievement`, which drags in
+human approval for something that should not need it. I used confirmation plus
+overwrite with the full merged record instead.
+
+There is also no way to retract or supersede a profile fact. The policy can
+refuse duplicates, but nothing can mark an old fact as stale.
+
+There is no token or cost accounting.
 
 ## AI tools used
 
-Built with **Claude Code** (Anthropic): the loop, policy layer, tests and this
-README were written iteratively with it against the assignment spec, then
-reviewed and simplified by hand. No other AI tools.
+I used an AI coding assistant for this. The loop, the policy layer, the tests
+and the first draft of this README were written iteratively with it against the
+assignment spec, then I reviewed and simplified them by hand. I can explain and
+change any line of it.
