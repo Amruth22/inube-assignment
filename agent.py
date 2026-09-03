@@ -4,11 +4,11 @@ Batch:  python agent.py --profile data/profile.json --conversation data/conversa
 Chat:   python agent.py --chat
 
 How it works, in one paragraph:
-    The conversation is sent to Claude together with the tool list. Claude
+    The conversation is sent to the model together with the tool list. It
     replies either with tool calls or with a final message. Every tool call is
     passed to Executor.run() in toolkit.py, which checks it against our policy
-    and only then calls traccia_store. The result goes back to Claude and the
-    loop repeats until Claude writes its final message. Every call is logged.
+    and only then calls traccia_store. The result goes back to the model and the
+    loop repeats until it writes its final message. Every call is logged.
 """
 
 import argparse
@@ -66,13 +66,13 @@ you did not make."""
 
 
 # ---------------------------------------------------------------------------
-# 1. Talking to Claude  (official SDK, no framework)
+# 1. Talking to the model  (official SDK, no framework)
 # ---------------------------------------------------------------------------
 
 _client = None
 
 
-def ask_claude(messages):
+def ask_model(messages):
     """One call to the Messages API. The SDK reads ANTHROPIC_API_KEY and
     retries rate limits / server errors on its own (max_retries below)."""
     global _client
@@ -87,13 +87,13 @@ def ask_claude(messages):
 # 2. The agent loop
 # ---------------------------------------------------------------------------
 
-def run_agent(executor, messages, ask=ask_claude):
-    """Loop: ask Claude -> run its tool calls -> feed results back -> repeat."""
+def run_agent(executor, messages, ask=ask_model):
+    """Loop: ask the model -> run its tool calls -> feed results back -> repeat."""
     for _ in range(MAX_TURNS):
         reply = ask(messages)
         tool_calls = [b for b in reply["content"] if b["type"] == "tool_use"]
 
-        if not tool_calls:  # no tools requested: Claude is done, return its text
+        if not tool_calls:  # no tools requested: the model is done, return its text
             return "".join(b.get("text", "") for b in reply["content"]
                            if b["type"] == "text").strip()
 

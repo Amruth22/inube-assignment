@@ -1,4 +1,4 @@
-"""toolkit.py — the safety rails between Claude and traccia_store.
+"""toolkit.py — the safety rails between the model and traccia_store.
 
 traccia_store's tools are deliberately permissive: update_profile_field will
 store duplicates and unevidenced values, and verify_certification fails 40% of
@@ -12,7 +12,7 @@ the time. Executor.run() is the only path from the model to those tools, and it
      destructive overwrites — the model itself can never approve,
   6. logs every call, refused or not, so the trace tells the whole story.
 
-TOOLS at the bottom is what Claude reads about each tool. The store ships its
+TOOLS at the bottom is what the model reads about each tool. The store ships its
 own TOOL_SPECS, but the descriptions are our design surface, so we wrote them.
 """
 
@@ -170,7 +170,7 @@ class Executor:
 
 
 # ---------------------------------------------------------------------------
-# What Claude is told about each tool (Anthropic tool format)
+# What the model is told about each tool (Anthropic tool format)
 # ---------------------------------------------------------------------------
 
 STATUS = {"type": "string", "enum": ["supported", "needs_clarification", "conflicting"]}

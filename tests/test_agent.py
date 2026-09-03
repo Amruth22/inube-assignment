@@ -1,7 +1,7 @@
 """Five things that must never regress.  Run:  python -m pytest -q
 
 No API key needed: four tests hit the policy layer directly, and the loop test
-feeds the agent a scripted fake model instead of Claude.
+feeds the agent a scripted fake model instead of the real one.
 """
 
 import sys

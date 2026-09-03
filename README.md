@@ -30,7 +30,7 @@ Model: `claude-sonnet-5` (override with `TRACCIA_MODEL`). Seed: `TRACCIA_SEED=4`
 Two files, ~450 lines in total.
 
 ```
-conversation ──> agent.py  run_agent()  ──> Claude (Messages API via anthropic SDK)
+conversation ──> agent.py  run_agent()  ──> model (Messages API via anthropic SDK)
                        │                        │  tool_use blocks
                        ▼                        ▼
                  toolkit.py  Executor.run()  ── policy checks ──> traccia_store.call_tool()
@@ -39,8 +39,8 @@ conversation ──> agent.py  run_agent()  ──> Claude (Messages API via ant
 ```
 
 **`agent.py`** — the loop. Send system prompt + tool list + transcript; for
-each `tool_use` block Claude returns, call `Executor.run()`, append the result,
-repeat; stop when Claude replies with text (or after 16 turns). Batch mode and
+each `tool_use` block the model returns, call `Executor.run()`, append the result,
+repeat; stop when the model replies with text (or after 16 turns). Batch mode and
 chat mode share this loop. The system prompt is eight rules that map directly
 onto the scenarios (ground everything, search before writing, retractions win,
 contradictions go to a human, destructive actions need approval, verify
@@ -63,7 +63,7 @@ executor enforces what it won't, *before* a call reaches the store:
   it is a real y/N prompt on stdin; `--no-auto-approve` shows the refusal path;
 - a call budget stops runaway loops; every call, refused or not, is logged.
 
-`TOOLS` in `toolkit.py` is what Claude reads about each tool. The wording
+`TOOLS` in `toolkit.py` is what the model reads about each tool. The wording
 carries the policy ("search before writing", "zero or multiple registry
 matches ⇒ ask, don't store") — that is half of what steers tool choice.
 
